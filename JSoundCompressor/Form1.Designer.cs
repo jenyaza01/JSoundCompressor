@@ -32,13 +32,16 @@
 			System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(FormMain));
 			this.cbInput1 = new System.Windows.Forms.ComboBox();
 			this.cbOutput1 = new System.Windows.Forms.ComboBox();
-			this.panel_db_original = new System.Windows.Forms.Panel();
+			this.panelMixIn = new System.Windows.Forms.Panel();
 			this.label_IN_FAST = new System.Windows.Forms.Label();
 			this.grCompress = new System.Windows.Forms.GroupBox();
+			this.labelHLimitVal = new System.Windows.Forms.Label();
+			this.label2 = new System.Windows.Forms.Label();
 			this.labelRelease = new System.Windows.Forms.Label();
 			this.labelReleaseVal = new System.Windows.Forms.Label();
 			this.tbCompReleaseSpeed = new System.Windows.Forms.TrackBar();
 			this.labelAttack = new System.Windows.Forms.Label();
+			this.tbHLimitVal = new System.Windows.Forms.TrackBar();
 			this.labelLimiterVal = new System.Windows.Forms.Label();
 			this.labelLimiter = new System.Windows.Forms.Label();
 			this.tbCompLimit = new System.Windows.Forms.TrackBar();
@@ -62,11 +65,7 @@
 			this.tbCompAttackSpeed = new System.Windows.Forms.TrackBar();
 			this.tbCompNTreshold = new System.Windows.Forms.TrackBar();
 			this.labelNTreshold = new System.Windows.Forms.Label();
-			this.rbPeak = new System.Windows.Forms.RadioButton();
-			this.rbRMS = new System.Windows.Forms.RadioButton();
 			this.cbBypass = new System.Windows.Forms.CheckBox();
-			this.label_OUT_FAST = new System.Windows.Forms.Label();
-			this.panel_db_result = new System.Windows.Forms.Panel();
 			this.labelMIX = new System.Windows.Forms.Label();
 			this.panelDelta = new System.Windows.Forms.Panel();
 			this.panel3 = new System.Windows.Forms.Panel();
@@ -81,8 +80,6 @@
 			this.bMinimise = new System.Windows.Forms.Button();
 			this.bClose = new System.Windows.Forms.Button();
 			this.labelWindowTitle = new System.Windows.Forms.Label();
-			this.labelIN_SLOW = new System.Windows.Forms.Label();
-			this.labelOUT_SLOW = new System.Windows.Forms.Label();
 			this.panel2 = new System.Windows.Forms.Panel();
 			this.notifyIcon1 = new System.Windows.Forms.NotifyIcon(this.components);
 			this.bSavePreset = new System.Windows.Forms.Button();
@@ -91,12 +88,19 @@
 			this.labelMainInput = new System.Windows.Forms.Label();
 			this.labelSecondInput = new System.Windows.Forms.Label();
 			this.panelCompressor = new System.Windows.Forms.Panel();
+			this.panel9 = new System.Windows.Forms.Panel();
+			this.pMix = new System.Windows.Forms.Panel();
+			this.pMixOut = new System.Windows.Forms.Panel();
+			this.pMainOut = new System.Windows.Forms.Panel();
+			this.pMainIn = new System.Windows.Forms.Panel();
 			this.bSettings = new System.Windows.Forms.Button();
 			this.bPlay = new System.Windows.Forms.Button();
 			this.cbOutput2 = new System.Windows.Forms.ComboBox();
 			this.labelSecondOutput = new System.Windows.Forms.Label();
+			this.panel8 = new System.Windows.Forms.Panel();
 			this.grCompress.SuspendLayout();
 			((System.ComponentModel.ISupportInitialize)(this.tbCompReleaseSpeed)).BeginInit();
+			((System.ComponentModel.ISupportInitialize)(this.tbHLimitVal)).BeginInit();
 			((System.ComponentModel.ISupportInitialize)(this.tbCompLimit)).BeginInit();
 			((System.ComponentModel.ISupportInitialize)(this.tbCompNRatio)).BeginInit();
 			((System.ComponentModel.ISupportInitialize)(this.tbCompPostAmp)).BeginInit();
@@ -108,6 +112,8 @@
 			this.pWindowTitle.SuspendLayout();
 			this.contextMenuStrip1.SuspendLayout();
 			this.panelCompressor.SuspendLayout();
+			this.panel9.SuspendLayout();
+			this.pMix.SuspendLayout();
 			this.SuspendLayout();
 			// 
 			// cbInput1
@@ -131,28 +137,28 @@
 			this.cbOutput1.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
 			this.cbOutput1.FormattingEnabled = true;
 			this.cbOutput1.ImeMode = System.Windows.Forms.ImeMode.NoControl;
-			this.cbOutput1.Location = new System.Drawing.Point(10, 392);
+			this.cbOutput1.Location = new System.Drawing.Point(10, 391);
 			this.cbOutput1.Name = "cbOutput1";
 			this.cbOutput1.Size = new System.Drawing.Size(221, 23);
 			this.cbOutput1.TabIndex = 1;
 			this.cbOutput1.SelectedIndexChanged += new System.EventHandler(this.cbOutput_SelectedIndexChanged);
 			// 
-			// panel_db_original
+			// panelMixIn
 			// 
-			this.panel_db_original.BackColor = System.Drawing.Color.LightGreen;
-			this.panel_db_original.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-			this.panel_db_original.CausesValidation = false;
-			this.panel_db_original.Location = new System.Drawing.Point(48, 7);
-			this.panel_db_original.Name = "panel_db_original";
-			this.panel_db_original.Size = new System.Drawing.Size(250, 14);
-			this.panel_db_original.TabIndex = 4;
+			this.panelMixIn.BackColor = System.Drawing.Color.LightGreen;
+			this.panelMixIn.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+			this.panelMixIn.CausesValidation = false;
+			this.panelMixIn.Location = new System.Drawing.Point(41, 12);
+			this.panelMixIn.Name = "panelMixIn";
+			this.panelMixIn.Size = new System.Drawing.Size(250, 7);
+			this.panelMixIn.TabIndex = 4;
 			// 
 			// label_IN_FAST
 			// 
 			this.label_IN_FAST.AutoSize = true;
 			this.label_IN_FAST.CausesValidation = false;
 			this.label_IN_FAST.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-			this.label_IN_FAST.Location = new System.Drawing.Point(9, 5);
+			this.label_IN_FAST.Location = new System.Drawing.Point(18, 6);
 			this.label_IN_FAST.Name = "label_IN_FAST";
 			this.label_IN_FAST.Size = new System.Drawing.Size(19, 15);
 			this.label_IN_FAST.TabIndex = 7;
@@ -160,10 +166,13 @@
 			// 
 			// grCompress
 			// 
+			this.grCompress.Controls.Add(this.labelHLimitVal);
+			this.grCompress.Controls.Add(this.label2);
 			this.grCompress.Controls.Add(this.labelRelease);
 			this.grCompress.Controls.Add(this.labelReleaseVal);
 			this.grCompress.Controls.Add(this.tbCompReleaseSpeed);
 			this.grCompress.Controls.Add(this.labelAttack);
+			this.grCompress.Controls.Add(this.tbHLimitVal);
 			this.grCompress.Controls.Add(this.labelLimiterVal);
 			this.grCompress.Controls.Add(this.labelLimiter);
 			this.grCompress.Controls.Add(this.tbCompLimit);
@@ -187,12 +196,30 @@
 			this.grCompress.Controls.Add(this.tbCompAttackSpeed);
 			this.grCompress.Controls.Add(this.tbCompNTreshold);
 			this.grCompress.Controls.Add(this.labelNTreshold);
-			this.grCompress.Location = new System.Drawing.Point(3, 103);
+			this.grCompress.Location = new System.Drawing.Point(9, 66);
 			this.grCompress.Name = "grCompress";
-			this.grCompress.Size = new System.Drawing.Size(383, 286);
+			this.grCompress.Size = new System.Drawing.Size(383, 312);
 			this.grCompress.TabIndex = 9;
 			this.grCompress.TabStop = false;
 			this.grCompress.Text = "Compressor";
+			// 
+			// labelHLimitVal
+			// 
+			this.labelHLimitVal.AutoSize = true;
+			this.labelHLimitVal.Location = new System.Drawing.Point(339, 289);
+			this.labelHLimitVal.Name = "labelHLimitVal";
+			this.labelHLimitVal.Size = new System.Drawing.Size(38, 13);
+			this.labelHLimitVal.TabIndex = 24;
+			this.labelHLimitVal.Text = "-4,0dB";
+			// 
+			// label2
+			// 
+			this.label2.AutoSize = true;
+			this.label2.Location = new System.Drawing.Point(7, 289);
+			this.label2.Name = "label2";
+			this.label2.Size = new System.Drawing.Size(36, 13);
+			this.label2.TabIndex = 23;
+			this.label2.Text = "HLimit";
 			// 
 			// labelRelease
 			// 
@@ -216,7 +243,7 @@
 			// 
 			this.tbCompReleaseSpeed.AutoSize = false;
 			this.tbCompReleaseSpeed.Location = new System.Drawing.Point(55, 84);
-			this.tbCompReleaseSpeed.Maximum = 120;
+			this.tbCompReleaseSpeed.Maximum = 160;
 			this.tbCompReleaseSpeed.Name = "tbCompReleaseSpeed";
 			this.tbCompReleaseSpeed.Size = new System.Drawing.Size(282, 23);
 			this.tbCompReleaseSpeed.TabIndex = 19;
@@ -234,6 +261,19 @@
 			this.labelAttack.TabIndex = 18;
 			this.labelAttack.Text = "Attack";
 			// 
+			// tbHLimitVal
+			// 
+			this.tbHLimitVal.AutoSize = false;
+			this.tbHLimitVal.Location = new System.Drawing.Point(55, 288);
+			this.tbHLimitVal.Maximum = 0;
+			this.tbHLimitVal.Minimum = -36;
+			this.tbHLimitVal.Name = "tbHLimitVal";
+			this.tbHLimitVal.Size = new System.Drawing.Size(282, 23);
+			this.tbHLimitVal.TabIndex = 22;
+			this.tbHLimitVal.TickStyle = System.Windows.Forms.TickStyle.None;
+			this.tbHLimitVal.Value = -8;
+			this.tbHLimitVal.ValueChanged += new System.EventHandler(this.tbHLimit_ValueChanged);
+			// 
 			// labelLimiterVal
 			// 
 			this.labelLimiterVal.AutoSize = true;
@@ -248,16 +288,16 @@
 			this.labelLimiter.AutoSize = true;
 			this.labelLimiter.Location = new System.Drawing.Point(8, 260);
 			this.labelLimiter.Name = "labelLimiter";
-			this.labelLimiter.Size = new System.Drawing.Size(37, 13);
+			this.labelLimiter.Size = new System.Drawing.Size(35, 13);
 			this.labelLimiter.TabIndex = 16;
-			this.labelLimiter.Text = "Limiter";
+			this.labelLimiter.Text = "SLimit";
 			// 
 			// tbCompLimit
 			// 
 			this.tbCompLimit.AutoSize = false;
 			this.tbCompLimit.Location = new System.Drawing.Point(55, 260);
 			this.tbCompLimit.Maximum = 0;
-			this.tbCompLimit.Minimum = -24;
+			this.tbCompLimit.Minimum = -48;
 			this.tbCompLimit.Name = "tbCompLimit";
 			this.tbCompLimit.Size = new System.Drawing.Size(282, 23);
 			this.tbCompLimit.TabIndex = 15;
@@ -478,33 +518,10 @@
 			this.labelNTreshold.TabIndex = 4;
 			this.labelNTreshold.Text = "NTreshold";
 			// 
-			// rbPeak
-			// 
-			this.rbPeak.AutoSize = true;
-			this.rbPeak.Location = new System.Drawing.Point(126, 68);
-			this.rbPeak.Name = "rbPeak";
-			this.rbPeak.Size = new System.Drawing.Size(50, 17);
-			this.rbPeak.TabIndex = 23;
-			this.rbPeak.TabStop = true;
-			this.rbPeak.Text = "Peak";
-			this.rbPeak.UseVisualStyleBackColor = true;
-			// 
-			// rbRMS
-			// 
-			this.rbRMS.AutoSize = true;
-			this.rbRMS.Checked = true;
-			this.rbRMS.Location = new System.Drawing.Point(207, 68);
-			this.rbRMS.Name = "rbRMS";
-			this.rbRMS.Size = new System.Drawing.Size(49, 17);
-			this.rbRMS.TabIndex = 22;
-			this.rbRMS.TabStop = true;
-			this.rbRMS.Text = "RMS";
-			this.rbRMS.UseVisualStyleBackColor = true;
-			// 
 			// cbBypass
 			// 
 			this.cbBypass.AutoSize = true;
-			this.cbBypass.Location = new System.Drawing.Point(115, 103);
+			this.cbBypass.Location = new System.Drawing.Point(9, 8);
 			this.cbBypass.Name = "cbBypass";
 			this.cbBypass.Size = new System.Drawing.Size(60, 17);
 			this.cbBypass.TabIndex = 0;
@@ -512,30 +529,11 @@
 			this.cbBypass.UseVisualStyleBackColor = true;
 			this.cbBypass.CheckedChanged += new System.EventHandler(this.cbCompressBypass_CheckedChanged);
 			// 
-			// label_OUT_FAST
-			// 
-			this.label_OUT_FAST.AutoSize = true;
-			this.label_OUT_FAST.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-			this.label_OUT_FAST.Location = new System.Drawing.Point(8, 45);
-			this.label_OUT_FAST.Name = "label_OUT_FAST";
-			this.label_OUT_FAST.Size = new System.Drawing.Size(32, 15);
-			this.label_OUT_FAST.TabIndex = 11;
-			this.label_OUT_FAST.Text = "OUT";
-			// 
-			// panel_db_result
-			// 
-			this.panel_db_result.BackColor = System.Drawing.Color.LightGreen;
-			this.panel_db_result.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-			this.panel_db_result.Location = new System.Drawing.Point(48, 47);
-			this.panel_db_result.Name = "panel_db_result";
-			this.panel_db_result.Size = new System.Drawing.Size(250, 13);
-			this.panel_db_result.TabIndex = 10;
-			// 
 			// labelMIX
 			// 
 			this.labelMIX.AutoSize = true;
 			this.labelMIX.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-			this.labelMIX.Location = new System.Drawing.Point(9, 25);
+			this.labelMIX.Location = new System.Drawing.Point(9, 30);
 			this.labelMIX.Name = "labelMIX";
 			this.labelMIX.Size = new System.Drawing.Size(29, 15);
 			this.labelMIX.TabIndex = 13;
@@ -545,15 +543,15 @@
 			// 
 			this.panelDelta.BackColor = System.Drawing.Color.Orange;
 			this.panelDelta.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-			this.panelDelta.Location = new System.Drawing.Point(198, 27);
+			this.panelDelta.Location = new System.Drawing.Point(191, 22);
 			this.panelDelta.Name = "panelDelta";
-			this.panelDelta.Size = new System.Drawing.Size(1, 14);
+			this.panelDelta.Size = new System.Drawing.Size(1, 8);
 			this.panelDelta.TabIndex = 12;
 			// 
 			// panel3
 			// 
 			this.panel3.BackColor = System.Drawing.SystemColors.ScrollBar;
-			this.panel3.Location = new System.Drawing.Point(298, 7);
+			this.panel3.Location = new System.Drawing.Point(291, 6);
 			this.panel3.Name = "panel3";
 			this.panel3.Size = new System.Drawing.Size(1, 14);
 			this.panel3.TabIndex = 14;
@@ -561,7 +559,7 @@
 			// panel4
 			// 
 			this.panel4.BackColor = System.Drawing.SystemColors.ScrollBar;
-			this.panel4.Location = new System.Drawing.Point(248, 7);
+			this.panel4.Location = new System.Drawing.Point(241, 6);
 			this.panel4.Name = "panel4";
 			this.panel4.Size = new System.Drawing.Size(1, 14);
 			this.panel4.TabIndex = 15;
@@ -569,7 +567,7 @@
 			// panel5
 			// 
 			this.panel5.BackColor = System.Drawing.SystemColors.ScrollBar;
-			this.panel5.Location = new System.Drawing.Point(198, 7);
+			this.panel5.Location = new System.Drawing.Point(191, 6);
 			this.panel5.Name = "panel5";
 			this.panel5.Size = new System.Drawing.Size(1, 14);
 			this.panel5.TabIndex = 16;
@@ -577,7 +575,7 @@
 			// panel6
 			// 
 			this.panel6.BackColor = System.Drawing.SystemColors.ScrollBar;
-			this.panel6.Location = new System.Drawing.Point(148, 7);
+			this.panel6.Location = new System.Drawing.Point(141, 6);
 			this.panel6.Name = "panel6";
 			this.panel6.Size = new System.Drawing.Size(1, 14);
 			this.panel6.TabIndex = 16;
@@ -585,7 +583,7 @@
 			// panel1
 			// 
 			this.panel1.BackColor = System.Drawing.SystemColors.ScrollBar;
-			this.panel1.Location = new System.Drawing.Point(98, 7);
+			this.panel1.Location = new System.Drawing.Point(91, 6);
 			this.panel1.Name = "panel1";
 			this.panel1.Size = new System.Drawing.Size(1, 14);
 			this.panel1.TabIndex = 17;
@@ -674,31 +672,10 @@
 			this.labelWindowTitle.MouseMove += new System.Windows.Forms.MouseEventHandler(this.frmMain_MouseMove);
 			this.labelWindowTitle.MouseUp += new System.Windows.Forms.MouseEventHandler(this.frmMain_MouseUp);
 			// 
-			// labelIN_SLOW
-			// 
-			this.labelIN_SLOW.AutoSize = true;
-			this.labelIN_SLOW.CausesValidation = false;
-			this.labelIN_SLOW.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-			this.labelIN_SLOW.Location = new System.Drawing.Point(355, 5);
-			this.labelIN_SLOW.Name = "labelIN_SLOW";
-			this.labelIN_SLOW.Size = new System.Drawing.Size(19, 15);
-			this.labelIN_SLOW.TabIndex = 7;
-			this.labelIN_SLOW.Text = "IN";
-			// 
-			// labelOUT_SLOW
-			// 
-			this.labelOUT_SLOW.AutoSize = true;
-			this.labelOUT_SLOW.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-			this.labelOUT_SLOW.Location = new System.Drawing.Point(354, 47);
-			this.labelOUT_SLOW.Name = "labelOUT_SLOW";
-			this.labelOUT_SLOW.Size = new System.Drawing.Size(32, 15);
-			this.labelOUT_SLOW.TabIndex = 11;
-			this.labelOUT_SLOW.Text = "OUT";
-			// 
 			// panel2
 			// 
 			this.panel2.BackColor = System.Drawing.SystemColors.ScrollBar;
-			this.panel2.Location = new System.Drawing.Point(348, 7);
+			this.panel2.Location = new System.Drawing.Point(341, 6);
 			this.panel2.Name = "panel2";
 			this.panel2.Size = new System.Drawing.Size(1, 14);
 			this.panel2.TabIndex = 15;
@@ -711,7 +688,7 @@
 			// 
 			// bSavePreset
 			// 
-			this.bSavePreset.Location = new System.Drawing.Point(208, 98);
+			this.bSavePreset.Location = new System.Drawing.Point(96, 4);
 			this.bSavePreset.Name = "bSavePreset";
 			this.bSavePreset.Size = new System.Drawing.Size(51, 23);
 			this.bSavePreset.TabIndex = 4;
@@ -721,7 +698,7 @@
 			// 
 			// bLoadPreset
 			// 
-			this.bLoadPreset.Location = new System.Drawing.Point(264, 98);
+			this.bLoadPreset.Location = new System.Drawing.Point(152, 4);
 			this.bLoadPreset.Name = "bLoadPreset";
 			this.bLoadPreset.Size = new System.Drawing.Size(51, 23);
 			this.bLoadPreset.TabIndex = 22;
@@ -766,38 +743,81 @@
 			// 
 			// panelCompressor
 			// 
-			this.panelCompressor.Controls.Add(this.panel_db_original);
-			this.panelCompressor.Controls.Add(this.label_IN_FAST);
-			this.panelCompressor.Controls.Add(this.panel_db_result);
-			this.panelCompressor.Controls.Add(this.label_OUT_FAST);
+			this.panelCompressor.Controls.Add(this.panel9);
+			this.panelCompressor.Controls.Add(this.pMix);
 			this.panelCompressor.Controls.Add(this.bSettings);
-			this.panelCompressor.Controls.Add(this.panelDelta);
-			this.panelCompressor.Controls.Add(this.bLoadPreset);
-			this.panelCompressor.Controls.Add(this.labelMIX);
-			this.panelCompressor.Controls.Add(this.bSavePreset);
-			this.panelCompressor.Controls.Add(this.cbBypass);
-			this.panelCompressor.Controls.Add(this.labelOUT_SLOW);
 			this.panelCompressor.Controls.Add(this.bPlay);
-			this.panelCompressor.Controls.Add(this.panel3);
 			this.panelCompressor.Controls.Add(this.cbOutput1);
-			this.panelCompressor.Controls.Add(this.labelIN_SLOW);
-			this.panelCompressor.Controls.Add(this.panel4);
-			this.panelCompressor.Controls.Add(this.rbPeak);
-			this.panelCompressor.Controls.Add(this.panel2);
-			this.panelCompressor.Controls.Add(this.rbRMS);
-			this.panelCompressor.Controls.Add(this.panel5);
-			this.panelCompressor.Controls.Add(this.panel6);
-			this.panelCompressor.Controls.Add(this.panel1);
 			this.panelCompressor.Controls.Add(this.grCompress);
-			this.panelCompressor.Location = new System.Drawing.Point(-1, 85);
+			this.panelCompressor.Location = new System.Drawing.Point(-1, 86);
 			this.panelCompressor.Name = "panelCompressor";
-			this.panelCompressor.Size = new System.Drawing.Size(401, 423);
+			this.panelCompressor.Size = new System.Drawing.Size(401, 422);
 			this.panelCompressor.TabIndex = 29;
+			// 
+			// panel9
+			// 
+			this.panel9.Controls.Add(this.cbBypass);
+			this.panel9.Controls.Add(this.bLoadPreset);
+			this.panel9.Controls.Add(this.bSavePreset);
+			this.panel9.Location = new System.Drawing.Point(109, 58);
+			this.panel9.Name = "panel9";
+			this.panel9.Size = new System.Drawing.Size(215, 31);
+			this.panel9.TabIndex = 32;
+			// 
+			// pMix
+			// 
+			this.pMix.Controls.Add(this.pMixOut);
+			this.pMix.Controls.Add(this.pMainOut);
+			this.pMix.Controls.Add(this.panelMixIn);
+			this.pMix.Controls.Add(this.label_IN_FAST);
+			this.pMix.Controls.Add(this.pMainIn);
+			this.pMix.Controls.Add(this.panel1);
+			this.pMix.Controls.Add(this.panel6);
+			this.pMix.Controls.Add(this.panel5);
+			this.pMix.Controls.Add(this.panel2);
+			this.pMix.Controls.Add(this.panelDelta);
+			this.pMix.Controls.Add(this.panel4);
+			this.pMix.Controls.Add(this.labelMIX);
+			this.pMix.Controls.Add(this.panel3);
+			this.pMix.Location = new System.Drawing.Point(9, 4);
+			this.pMix.Name = "pMix";
+			this.pMix.Size = new System.Drawing.Size(389, 56);
+			this.pMix.TabIndex = 32;
+			// 
+			// pMixOut
+			// 
+			this.pMixOut.BackColor = System.Drawing.Color.LightGreen;
+			this.pMixOut.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+			this.pMixOut.CausesValidation = false;
+			this.pMixOut.Location = new System.Drawing.Point(41, 32);
+			this.pMixOut.Name = "pMixOut";
+			this.pMixOut.Size = new System.Drawing.Size(190, 7);
+			this.pMixOut.TabIndex = 7;
+			// 
+			// pMainOut
+			// 
+			this.pMainOut.BackColor = System.Drawing.Color.PaleGreen;
+			this.pMainOut.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+			this.pMainOut.CausesValidation = false;
+			this.pMainOut.Location = new System.Drawing.Point(41, 41);
+			this.pMainOut.Name = "pMainOut";
+			this.pMainOut.Size = new System.Drawing.Size(225, 7);
+			this.pMainOut.TabIndex = 6;
+			// 
+			// pMainIn
+			// 
+			this.pMainIn.BackColor = System.Drawing.Color.PaleGreen;
+			this.pMainIn.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+			this.pMainIn.CausesValidation = false;
+			this.pMainIn.Location = new System.Drawing.Point(41, 3);
+			this.pMainIn.Name = "pMainIn";
+			this.pMainIn.Size = new System.Drawing.Size(198, 7);
+			this.pMainIn.TabIndex = 5;
 			// 
 			// bSettings
 			// 
 			this.bSettings.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-			this.bSettings.Location = new System.Drawing.Point(329, 392);
+			this.bSettings.Location = new System.Drawing.Point(329, 391);
 			this.bSettings.Name = "bSettings";
 			this.bSettings.Size = new System.Drawing.Size(62, 25);
 			this.bSettings.TabIndex = 28;
@@ -808,7 +828,7 @@
 			// bPlay
 			// 
 			this.bPlay.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-			this.bPlay.Location = new System.Drawing.Point(237, 392);
+			this.bPlay.Location = new System.Drawing.Point(237, 391);
 			this.bPlay.Name = "bPlay";
 			this.bPlay.Size = new System.Drawing.Size(88, 25);
 			this.bPlay.TabIndex = 3;
@@ -842,10 +862,22 @@
 			this.labelSecondOutput.TabIndex = 31;
 			this.labelSecondOutput.Text = "SECONDARY OUTPUT";
 			// 
+			// panel8
+			// 
+			this.panel8.BackColor = System.Drawing.Color.LightGreen;
+			this.panel8.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+			this.panel8.CausesValidation = false;
+			this.panel8.Location = new System.Drawing.Point(14, 64);
+			this.panel8.Name = "panel8";
+			this.panel8.Size = new System.Drawing.Size(198, 15);
+			this.panel8.TabIndex = 6;
+			this.panel8.Visible = false;
+			// 
 			// FormMain
 			// 
 			this.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(240)))), ((int)(((byte)(240)))), ((int)(((byte)(240)))));
 			this.ClientSize = new System.Drawing.Size(401, 542);
+			this.Controls.Add(this.panel8);
 			this.Controls.Add(this.panelCompressor);
 			this.Controls.Add(this.cbOutput2);
 			this.Controls.Add(this.labelSecondInput);
@@ -862,6 +894,7 @@
 			this.grCompress.ResumeLayout(false);
 			this.grCompress.PerformLayout();
 			((System.ComponentModel.ISupportInitialize)(this.tbCompReleaseSpeed)).EndInit();
+			((System.ComponentModel.ISupportInitialize)(this.tbHLimitVal)).EndInit();
 			((System.ComponentModel.ISupportInitialize)(this.tbCompLimit)).EndInit();
 			((System.ComponentModel.ISupportInitialize)(this.tbCompNRatio)).EndInit();
 			((System.ComponentModel.ISupportInitialize)(this.tbCompPostAmp)).EndInit();
@@ -874,7 +907,10 @@
 			this.pWindowTitle.PerformLayout();
 			this.contextMenuStrip1.ResumeLayout(false);
 			this.panelCompressor.ResumeLayout(false);
-			this.panelCompressor.PerformLayout();
+			this.panel9.ResumeLayout(false);
+			this.panel9.PerformLayout();
+			this.pMix.ResumeLayout(false);
+			this.pMix.PerformLayout();
 			this.ResumeLayout(false);
 			this.PerformLayout();
 
@@ -884,7 +920,7 @@
 
         private System.Windows.Forms.ComboBox cbInput1;
         private System.Windows.Forms.ComboBox cbOutput1;
-        private System.Windows.Forms.Panel panel_db_original;
+        private System.Windows.Forms.Panel panelMixIn;
         private System.Windows.Forms.Label label_IN_FAST;
         private System.Windows.Forms.GroupBox grCompress;
         private System.Windows.Forms.CheckBox cbBypass;
@@ -900,8 +936,6 @@
         private System.Windows.Forms.TrackBar tbCompTreshold;
         private System.Windows.Forms.Label labelPreampVal;
         private System.Windows.Forms.Label labelPreamp;
-        private System.Windows.Forms.Label label_OUT_FAST;
-        private System.Windows.Forms.Panel panel_db_result;
         private System.Windows.Forms.Label labelMIX;
         private System.Windows.Forms.Panel panelDelta;
         private System.Windows.Forms.Label labelNRatioVal;
@@ -921,16 +955,12 @@
         private System.Windows.Forms.Button bMinimise;
         private System.Windows.Forms.ContextMenuStrip contextMenuStrip1;
         private System.Windows.Forms.ToolStripMenuItem aboutToolStripMenuItem;
-        private System.Windows.Forms.RadioButton rbPeak;
-        private System.Windows.Forms.RadioButton rbRMS;
         private System.Windows.Forms.Label labelAttack;
         private System.Windows.Forms.Label labelAttackVal;
         private System.Windows.Forms.TrackBar tbCompAttackSpeed;
         private System.Windows.Forms.Label labelNTresholdVal;
         private System.Windows.Forms.Label labelNTreshold;
         private System.Windows.Forms.TrackBar tbCompNTreshold;
-        private System.Windows.Forms.Label labelIN_SLOW;
-        private System.Windows.Forms.Label labelOUT_SLOW;
         private System.Windows.Forms.Panel panel2;
         private System.Windows.Forms.Label labelRelease;
         private System.Windows.Forms.Label labelReleaseVal;
@@ -947,6 +977,15 @@
 		private System.Windows.Forms.Button bPlay;
 		private System.Windows.Forms.ComboBox cbOutput2;
 		private System.Windows.Forms.Label labelSecondOutput;
+		private System.Windows.Forms.Panel pMainIn;
+		private System.Windows.Forms.Panel panel8;
+		private System.Windows.Forms.Panel pMix;
+		private System.Windows.Forms.Panel panel9;
+		private System.Windows.Forms.Panel pMainOut;
+		private System.Windows.Forms.Label labelHLimitVal;
+		private System.Windows.Forms.Label label2;
+		private System.Windows.Forms.TrackBar tbHLimitVal;
+		private System.Windows.Forms.Panel pMixOut;
 	}
 }
 

@@ -11,6 +11,7 @@ namespace JSoundCompressor
 	public partial class FormMain : Form
 	{
 		private const float norm = 1 / 32768f;
+		private const float norm2 = norm * norm;
 
 		public FormMain()
 		{
@@ -25,7 +26,6 @@ namespace JSoundCompressor
 		private bool noWaveOut2 = false;
 		private byte playing = 0; //for audio buffer filing;
 		private float db_read = 0;
-		private float db_lastRead = 0;
 		private float db_original = 0;
 		private float db_originPre = 0;
 		private float db_result = 0;
@@ -39,14 +39,21 @@ namespace JSoundCompressor
 		private float db_nratio = 1.0f;
 		private float db_ntreshold = -36;
 		private float db_postAmp = 0;
-		private float db_limit = -4;
+		private float db_slimit = -4;
+		private float db_hlimit = -4;
 		private float in_max = -100f;
 		private float out_max = -100f;
+
+
+		int lIN_RP, lMIX_RP;
 
 
 		private void Form1_Load(object sender, EventArgs e)
 		{
 			ReloadDevices();
+
+			lIN_RP = label_IN_FAST.Right;
+			lMIX_RP = labelMIX.Right;
 
 			notifyIcon1.Icon = Icon;
 			System.Diagnostics.Process myProcess = System.Diagnostics.Process.GetCurrentProcess();
@@ -111,44 +118,72 @@ namespace JSoundCompressor
 		private void waveIn1_DataAvailable(object sender, WaveInEventArgs e)
 		{
 			int bytesRecorded = e.BytesRecorded;
-			float sample = 0f;
-			float maxdb = 0f;
+			int shortRecorded = bytesRecorded / 2;
+			float in_db = 0f;
+
+			short[] data = new short[bytesRecorded];
 
 
-			if (!cbBypass.Checked)
+			Buffer.BlockCopy(e.Buffer, 0, data, 0, bytesRecorded);
+
+			if (cbBypass.Checked)
+			{
+				buffer11.AddSamples(e.Buffer, 0, bytesRecorded);
+
+				for (int index = 0; index < shortRecorded; index++)
+					in_db += data[index] * data[index] * norm2;
+
+				in_db = (float)Decibels.LinearToDecibels(Math.Sqrt(in_db / (bytesRecorded * 0.5)));
+
+				db_original = clamp((db_original + in_db) * 0.5f, 90f);
+
+				in_max = max(in_max - 0.05f, db_original);
+
+				if (WindowState != FormWindowState.Minimized)
+				{
+					Invoke(new Action(() =>
+					{
+						this.SuspendLayout();
+						pMainIn.Width = (int)(5 * in_db + 300);
+						panelMixIn.Width = (int)(5 * db_original + 300);
+						label_IN_FAST.Text = (db_original).ToString("0.0");
+
+						label_IN_FAST.Left = lIN_RP - label_IN_FAST.Width;
+
+						if (db_original > -1) panelMixIn.BackColor = Color.Red; // 80%
+						else if (db_original > -5) panelMixIn.BackColor = Color.Orange; //60%
+						else if (db_original > -12) panelMixIn.BackColor = Color.Yellow;
+						else if (db_original > -30) panelMixIn.BackColor = Color.LawnGreen;
+						else if (db_original > -45) panelMixIn.BackColor = Color.LightGreen;
+						else panelMixIn.BackColor = Color.LightGray;
+						this.ResumeLayout();
+
+					}));
+				}
+			}
+
+			else
 			{
 				byte[] bytes = e.Buffer;
-				{                          // switch calc method
-					if (rbPeak.Checked)
-						for (int index = 0; index < bytesRecorded; index += 2)
-						{
-							sample = abs(BitConverter.ToInt16(bytes, index) * norm);
-							if (sample > maxdb) maxdb = sample;
-						}
+				for (int index = 0; index < shortRecorded; index++)
+					in_db += data[index] * data[index] * norm2;
 
-					if (rbRMS.Checked)
-					{
-						for (int index = 0; index < bytesRecorded; index += 2)
-						{
-							sample = BitConverter.ToInt16(bytes, index) * norm;
-							maxdb += sample * sample;
-						}
-						maxdb = (float)Math.Sqrt(maxdb / (bytesRecorded * 0.5));
-					}
+				in_db = (float)Decibels.LinearToDecibels(Math.Sqrt(in_db / shortRecorded));
+
+				if (float.IsNaN(db_original))
+				{
+					db_original = 0f;
+					db_originPre = 0f;
+					db_delta = 0f;
+					out_max = 0f;
+					pWindowTitle.BackColor = Color.White;
 				}
 
 
-				if (Single.IsNegativeInfinity(maxdb)) maxdb = 0.001f;
-
-				db_lastRead = db_read;
-				db_read = (float)Decibels.LinearToDecibels(maxdb);
-
-				if (db_original < db_read)
-					db_original = clamp((db_original * db_AttSpeed + db_read) / (db_AttSpeed + 1f), 90f);
+				if (db_original < in_db)
+					db_original = clamp((db_original * db_AttSpeed + in_db) / (db_AttSpeed + 1f), 90f);
 				else
-					db_original = clamp((db_original * db_RelSpeed + db_read) / (db_RelSpeed + 1f), 90f);
-
-				in_max = max(in_max - 0.05f, db_read); // for display IN peak val
+					db_original = clamp((db_original * db_RelSpeed + in_db) / (db_RelSpeed + 1f), 90f);
 
 				db_originPre = db_original + db_preAmp;
 
@@ -156,11 +191,16 @@ namespace JSoundCompressor
 
 				db_result += db_postAmp;
 
-				if (db_result > db_limit) db_result = db_limit;
-
-				out_max = max(out_max - 0.05f, db_result); // for display OUT peak val
+				if (db_result > db_slimit) db_result = db_slimit;
 
 				db_delta = (db_result - db_original);
+
+				out_max = max(out_max - 0.05f, db_result); // for display OUT peak val 
+
+				//		-9       -2         -15
+				if (in_db + db_delta > db_hlimit)
+					//   -2     =   -15     - -11
+					db_delta += db_hlimit - (in_db + db_delta);
 
 				float_delta = (float)Decibels.DecibelsToLinear(db_delta);
 
@@ -179,85 +219,24 @@ namespace JSoundCompressor
 				{
 					Invoke(new Action(() =>
 					{
-						panel_db_original.Width = (int)(5 * db_original + 300);
+						this.SuspendLayout();
+						pMainIn.Width = (int)(5 * in_db + 300);
+						panelMixIn.Width = (int)(5 * db_original + 300);
+						pMixOut.Width = (int)(5 * db_result + 300);
 						label_IN_FAST.Text = (db_original).ToString("0.0");
-
-						if (db_original > -0.9) panel_db_original.BackColor = Color.Red; //0.9 ampl
-						else if (db_original > -6) panel_db_original.BackColor = Color.Orange; //0.5 ampl
-						else if (db_original > -12) panel_db_original.BackColor = Color.Yellow; //0.25, safe ampl
-						else if (db_original > db_ntreshold) panel_db_original.BackColor = Color.LawnGreen;
-						else if (db_original > -48) panel_db_original.BackColor = Color.LightGreen;
-						else panel_db_original.BackColor = Color.LightGray;
-
-						panel_db_result.Width = (int)(5 * db_result + 300);
-						label_OUT_FAST.Text = (db_result).ToString("0.0");
-
-						if (db_result > -0.9) panel_db_result.BackColor = Color.Red;
-						else if (db_result > -6) panel_db_result.BackColor = Color.Orange;
-						else if (db_result > -12) panel_db_result.BackColor = Color.Yellow;
-						else if (db_result > db_ntreshold) panel_db_result.BackColor = Color.LawnGreen;
-						else if (db_result > -48) panel_db_result.BackColor = Color.LightGreen;
-						else panel_db_result.BackColor = Color.LightGray;
 
 						float h = 5 * db_delta;
 						if (h < -150) { panelDelta.BackColor = Color.Gray; h = -150; } else panelDelta.BackColor = Color.Orange;
 
 						panelDelta.Width = (int)(abs(h) == 0 ? 1 : abs(h) + 1);
-						if (h > 0) panelDelta.Left = 200; else panelDelta.Left = 200 + (int)h;
+						if (h > 0) panelDelta.Left = 191; else panelDelta.Left = 191 + (int)h;
 						labelMIX.Text = (db_delta).ToString("0.0");
+						pMainOut.Width = (int)(5 * (in_db + db_delta) + 300);
 
-						labelIN_SLOW.Text = in_max.ToString("0dB");
-						labelOUT_SLOW.Text = out_max.ToString("0dB");
+						label_IN_FAST.Left = lIN_RP - label_IN_FAST.Width;
+						labelMIX.Left = lMIX_RP - labelMIX.Width;
 
-					}));
-				}
-			}
-
-			else
-			{
-				buffer11.AddSamples(e.Buffer, 0, bytesRecorded);
-
-				{                          // switch calc method
-					if (rbPeak.Checked)
-						for (int index = 0; index < bytesRecorded; index += 2)
-						{
-							sample = abs(BitConverter.ToInt16(e.Buffer, index) * norm);
-							if (sample > maxdb) maxdb = sample;
-						}
-
-					if (rbRMS.Checked)
-					{
-						for (int index = 0; index < bytesRecorded; index += 2)
-						{
-							sample = BitConverter.ToInt16(e.Buffer, index) * norm;
-							maxdb += sample * sample;
-						}
-						maxdb = (float)Math.Sqrt(maxdb / (bytesRecorded * 0.5));
-					}
-				}
-
-				maxdb = (float)Decibels.LinearToDecibels(maxdb);
-
-				db_original = clamp((db_original + maxdb) * 0.5f, 90f);
-
-				in_max = max(in_max - 0.05f, db_original);
-
-				if (WindowState != FormWindowState.Minimized)
-				{
-					Invoke(new Action(() =>
-					{
-						panel_db_original.Width = (int)(5 * db_original + 300);
-						label_IN_FAST.Text = (db_original).ToString("0.0");
-
-						if (db_original > -1) panel_db_original.BackColor = Color.Red; // 80%
-						else if (db_original > -5) panel_db_original.BackColor = Color.Orange; //60%
-						else if (db_original > -12) panel_db_original.BackColor = Color.Yellow;
-						else if (db_original > -30) panel_db_original.BackColor = Color.LawnGreen;
-						else if (db_original > -45) panel_db_original.BackColor = Color.LightGreen;
-						else panel_db_original.BackColor = Color.LightGray;
-
-						labelIN_SLOW.Text = in_max.ToString("0dB");
-
+						this.ResumeLayout();
 					}));
 				}
 			}
@@ -557,8 +536,8 @@ namespace JSoundCompressor
 
 		private void tbCompLimit_ValueChanged(object sender, EventArgs e)
 		{
-			db_limit = tbCompLimit.Value * 0.5f;
-			labelLimiterVal.Text = db_limit.ToString("0.0dB");
+			db_slimit = tbCompLimit.Value * 0.5f;
+			labelLimiterVal.Text = db_slimit.ToString("0.0dB");
 		}
 
 		private void tbCompLimit_MouseDown(object sender, MouseEventArgs e)
@@ -573,13 +552,11 @@ namespace JSoundCompressor
 		{
 			bool c = !cbBypass.Checked;
 			grCompress.Enabled = c;
-			panel_db_result.Visible = c;
-			label_OUT_FAST.Visible = c;
 			labelMIX.Visible = c;
 			panelDelta.Visible = c;
-			labelOUT_SLOW.Visible = c;
-			panelDelta.Width = 1;
-			panelDelta.Left = 189;
+			pMixOut.Visible = c;
+			panelMixIn.Visible = c;
+			pMainOut.Visible = c;
 
 		}
 
@@ -706,6 +683,12 @@ namespace JSoundCompressor
 				waveOut22.DesiredLatency = Int32.Parse(settings.outputMS);
 				waveOut22.NumberOfBuffers = waveOut22.DesiredLatency / 9;
 			}
+		}
+
+		private void tbHLimit_ValueChanged(object sender, EventArgs e)
+		{
+			db_hlimit = tbHLimitVal.Value * 0.5f;
+			labelHLimitVal.Text = db_hlimit.ToString("0.0dB");
 		}
 
 		private void notifyIcon1_Click(object sender, EventArgs e)
