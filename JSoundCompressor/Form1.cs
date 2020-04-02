@@ -77,7 +77,7 @@ namespace JSoundCompressor
                         if (File.Exists(sts.args[c]))
                             loadPresetFile(sts.args[c]);
                         else { c++; willStart = 2; }
-                    else { c++; willStart = 2}
+                    else { c++; willStart = 2; }
                     continue;
                 }
 
