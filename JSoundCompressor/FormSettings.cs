@@ -26,7 +26,6 @@ namespace JSoundCompressor
 			cbFreq.Text = sts.freq;
 			cbInputMS.Text = sts.inputMS;
 			cbOutputMS.Text = sts.outputMS;
-			cbPriority.SelectedIndex = sts.priority;
 
 		}
 
@@ -36,7 +35,6 @@ namespace JSoundCompressor
 			sts.secondInputEnabled = rbTwoInputs.Checked;
 			sts.secondOutputEnabled = rbTwoOutputs.Checked;
 
-			sts.priority = cbPriority.SelectedIndex;
 			sts.freq = cbFreq.Text;
 			sts.inputMS = cbInputMS.Text;
 			sts.outputMS = cbOutputMS.Text;
@@ -63,17 +61,6 @@ namespace JSoundCompressor
 				rbTwoOutputs.Enabled = false;
 			}
 			else rbTwoOutputs.Enabled = true;
-		}
-
-		private void cbPriority_SelectedIndexChanged(object sender, EventArgs e)
-		{
-			System.Diagnostics.Process myProcess = System.Diagnostics.Process.GetCurrentProcess();
-			switch (cbPriority.Text)
-			{
-				case "High": myProcess.PriorityClass = System.Diagnostics.ProcessPriorityClass.High; break;
-				case "Above Normal": myProcess.PriorityClass = System.Diagnostics.ProcessPriorityClass.AboveNormal; break;
-				case "Normal": myProcess.PriorityClass = System.Diagnostics.ProcessPriorityClass.Normal; break;
-			}
 		}
 	}
 }

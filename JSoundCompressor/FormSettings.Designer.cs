@@ -44,8 +44,6 @@
 			this.bCansel = new System.Windows.Forms.Button();
 			this.groupBox2 = new System.Windows.Forms.GroupBox();
 			this.rbOneOutput = new System.Windows.Forms.RadioButton();
-			this.cbPriority = new System.Windows.Forms.ComboBox();
-			this.labelPriority = new System.Windows.Forms.Label();
 			this.labelSampling = new System.Windows.Forms.Label();
 			this.groupBox1.SuspendLayout();
 			this.groupBox2.SuspendLayout();
@@ -57,7 +55,7 @@
 			this.groupBox1.Controls.Add(this.cbInputMS);
 			this.groupBox1.Controls.Add(this.rbTwoInputs);
 			this.groupBox1.Controls.Add(this.rbOneInput);
-			this.groupBox1.Location = new System.Drawing.Point(3, 31);
+			this.groupBox1.Location = new System.Drawing.Point(10, 60);
 			this.groupBox1.Name = "groupBox1";
 			this.groupBox1.Size = new System.Drawing.Size(240, 82);
 			this.groupBox1.TabIndex = 2;
@@ -140,7 +138,7 @@
 			// label1
 			// 
 			this.label1.AutoSize = true;
-			this.label1.Location = new System.Drawing.Point(182, 9);
+			this.label1.Location = new System.Drawing.Point(174, 8);
 			this.label1.Name = "label1";
 			this.label1.Size = new System.Drawing.Size(20, 13);
 			this.label1.TabIndex = 7;
@@ -153,7 +151,7 @@
 			this.cbFreq.Items.AddRange(new object[] {
             "44100",
             "48000"});
-			this.cbFreq.Location = new System.Drawing.Point(118, 6);
+			this.cbFreq.Location = new System.Drawing.Point(110, 5);
 			this.cbFreq.Name = "cbFreq";
 			this.cbFreq.Size = new System.Drawing.Size(58, 21);
 			this.cbFreq.TabIndex = 2;
@@ -173,7 +171,7 @@
 			// bApply
 			// 
 			this.bApply.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-			this.bApply.Location = new System.Drawing.Point(3, 207);
+			this.bApply.Location = new System.Drawing.Point(10, 236);
 			this.bApply.Name = "bApply";
 			this.bApply.Size = new System.Drawing.Size(119, 28);
 			this.bApply.TabIndex = 3;
@@ -183,7 +181,7 @@
 			// 
 			// bCansel
 			// 
-			this.bCansel.Location = new System.Drawing.Point(128, 207);
+			this.bCansel.Location = new System.Drawing.Point(135, 236);
 			this.bCansel.Name = "bCansel";
 			this.bCansel.Size = new System.Drawing.Size(115, 28);
 			this.bCansel.TabIndex = 4;
@@ -197,7 +195,7 @@
 			this.groupBox2.Controls.Add(this.cbOutputMS);
 			this.groupBox2.Controls.Add(this.rbTwoOutputs);
 			this.groupBox2.Controls.Add(this.rbOneOutput);
-			this.groupBox2.Location = new System.Drawing.Point(3, 119);
+			this.groupBox2.Location = new System.Drawing.Point(10, 148);
 			this.groupBox2.Name = "groupBox2";
 			this.groupBox2.Size = new System.Drawing.Size(240, 82);
 			this.groupBox2.TabIndex = 14;
@@ -216,33 +214,10 @@
 			this.rbOneOutput.Text = "One output";
 			this.rbOneOutput.UseVisualStyleBackColor = true;
 			// 
-			// cbPriority
-			// 
-			this.cbPriority.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-			this.cbPriority.FormattingEnabled = true;
-			this.cbPriority.Items.AddRange(new object[] {
-            "High",
-            "Above Normal",
-            "Normal"});
-			this.cbPriority.Location = new System.Drawing.Point(75, 256);
-			this.cbPriority.Name = "cbPriority";
-			this.cbPriority.Size = new System.Drawing.Size(111, 21);
-			this.cbPriority.TabIndex = 2;
-			this.cbPriority.SelectedIndexChanged += new System.EventHandler(this.cbPriority_SelectedIndexChanged);
-			// 
-			// labelPriority
-			// 
-			this.labelPriority.AutoSize = true;
-			this.labelPriority.Location = new System.Drawing.Point(31, 259);
-			this.labelPriority.Name = "labelPriority";
-			this.labelPriority.Size = new System.Drawing.Size(38, 13);
-			this.labelPriority.TabIndex = 7;
-			this.labelPriority.Text = "Priority";
-			// 
 			// labelSampling
 			// 
 			this.labelSampling.AutoSize = true;
-			this.labelSampling.Location = new System.Drawing.Point(41, 9);
+			this.labelSampling.Location = new System.Drawing.Point(33, 8);
 			this.labelSampling.Name = "labelSampling";
 			this.labelSampling.Size = new System.Drawing.Size(71, 13);
 			this.labelSampling.TabIndex = 12;
@@ -252,15 +227,13 @@
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-			this.ClientSize = new System.Drawing.Size(255, 292);
+			this.ClientSize = new System.Drawing.Size(297, 274);
 			this.Controls.Add(this.labelSampling);
 			this.Controls.Add(this.groupBox2);
 			this.Controls.Add(this.bCansel);
 			this.Controls.Add(this.bApply);
 			this.Controls.Add(this.groupBox1);
-			this.Controls.Add(this.labelPriority);
 			this.Controls.Add(this.label1);
-			this.Controls.Add(this.cbPriority);
 			this.Controls.Add(this.cbFreq);
 			this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedToolWindow;
 			this.Name = "FormSettings";
@@ -291,8 +264,6 @@
 		private System.Windows.Forms.GroupBox groupBox2;
 		private System.Windows.Forms.RadioButton rbTwoOutputs;
 		private System.Windows.Forms.RadioButton rbOneOutput;
-		private System.Windows.Forms.ComboBox cbPriority;
-		private System.Windows.Forms.Label labelPriority;
 		private System.Windows.Forms.Label labelSampling;
 	}
 }

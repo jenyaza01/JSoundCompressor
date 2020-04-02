@@ -13,14 +13,14 @@ namespace JSoundCompressor
         /// The main entry point for the application.
         /// </summary>
         [STAThread]
-        static void Main()
+        static void Main(string[] args)
         {
-       //     Thread th = Thread.CurrentThread;
-       //     th.Priority = System.Threading.ThreadPriority.AboveNormal;
+            Thread th = Thread.CurrentThread;
+            th.Priority = ThreadPriority.AboveNormal;
 
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new FormMain());
+            Application.Run(new FormMain(args));
         }
     }
 }
