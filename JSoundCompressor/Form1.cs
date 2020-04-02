@@ -95,9 +95,10 @@ namespace JSoundCompressor
                         cbInput1.SelectedIndex = i;
                     else
                     {
-                        MessageBox.Show("Not found input device with name \"" + sts.args[c++] + "\"");
+                        MessageBox.Show("Not found input device with name \"" + sts.args[c] + "\"");
                         willStart = 2;
                     }
+                    c++;
                     continue;
                 }
 
@@ -108,9 +109,10 @@ namespace JSoundCompressor
                         cbOutput1.SelectedIndex = i;
                     else
                     {
-                        MessageBox.Show("Not found output device with name \"" + sts.args[c++] + "\"");
+                        MessageBox.Show("Not found output device with name \"" + sts.args[c] + "\"");
                         willStart = 2;
                     }
+                    c++;
                     continue;
                 }
 
