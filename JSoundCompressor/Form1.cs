@@ -1,90 +1,120 @@
-﻿using NAudio.Utils;
-using NAudio.Wave;
-using System;
+﻿using System;
+using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Threading;
 using System.Windows.Forms;
+using NAudio.Utils;
+using NAudio.Wave;
+using NAudio.Wave.SampleProviders;
 using sts = JSoundCompressor.Settings;
 
 namespace JSoundCompressor
 {
+    public enum TriState
+    {
+        False, True, Error
+    }
+
+    public enum Channels
+    {
+        L_Only, L_Mono, Stereo, R_Mono, R_Only, Mono
+    }
+
     public partial class FormMain : Form
     {
-        private const float norm = 1 / 32768f;
-        private const float norm2 = norm * norm;
+        private const float SCALE = 1 / 32768f;
+        private const float SCALE2 = SCALE * SCALE;
+        private const int DROP_SPEED = 6;
 
         public FormMain(string[] args)
         {
+            Process.GetCurrentProcess().PriorityClass = ProcessPriorityClass.High;
             InitializeComponent();
             sts.args = args;
         }
 
-        private WaveInEvent waveIn1, waveIn2;
+        private WaveInEvent waveInMain, waveInSecond;
+        private WaveOut waveOutMain, waveOutSecond;
+
         private BufferedWaveProvider buffer11, buffer21, buffer22;
-        private WaveOut waveOut11, waveOut21, waveOut22; //in1 - out1, in2 - out1, in2 - out2
 
-        private bool noWaveOut1 = false;
-        private bool noWaveOut2 = false;
+        private MixingSampleProvider mixer; // mix buffer11 & buffer21 into waveOutMain
 
-        private byte playing = 0; //for audio buffer filing;
-        private float db_original = 0;
-        private float db_originPre = 0;
+        private bool waveOutMainActive = false;
+        private bool waveOutSecondActive = false;
+
+        private float db2_inputRaw = 0f;
+        private float db_inputPeak = 0;
+        private float db_inputFlat = 0;
+        private float db_inputAmp = 0;
         private float db_result = 0;
-        private float db_delta = 0;
-        private float float_delta = 1.0f;
-        private float db_AttSpeed = 4;
-        private float db_RelSpeed = 6;
-        private float db_preAmp = 0;
-        private float db_ratio = 2.0f;
-        private float db_treshold = -18;
-        private float db_nratio = 1.0f;
-        private float db_ntreshold = -36;
-        private float db_postAmp = 0;
-        private float db_limitS = -4;
-        private float db_limitF = -4;
-        private float in_max = -100f;
-        private float out_max = -100f;
-        private int lIN_RP, lMIX_RP;
+        private float db_resultLimited = 0;
+        private float db_delta = -0;
+        private float db_deltaFloat = 0.0f;
+        private float cmp_AttackSpeed = 3;
+        private float cmp_RelesSpeed = 4;
+        private float cmp_preAmp = -0;
+        private float cmp_ratio = 1.5f;
+        private float cmp_treshold = -18;
+        private float cmp_nratio = 1.0f;
+        private float cmp_ntreshold = -40;
+        private float cmp_postAmp = -0;
+        private float cmp_limitSlow = -4;
+        private float cmp_limitFast = -4;
 
+        private Channels cmp_channelsMain = Channels.Stereo;
+        private Channels cmp_channelsSecond = Channels.Stereo;
 
         private void Form1_Load(object sender, EventArgs e)
         {
             ReloadDevices();
 
-            lIN_RP = label_IN_FAST.Right;
-            lMIX_RP = labelMIX.Right;
+            cbChannelsMain.DataSource = Enum.GetNames(typeof(Channels));
+            cbChannelsMain.SelectedIndex = 2;    //stereo
+            cbChannelsSecond.DataSource = Enum.GetNames(typeof(Channels));
+            cbChannelsSecond.SelectedIndex = 2;
 
             pMix.SuspendLayout();
             notifyIcon1.Icon = Icon;
 
-            ParseArgs();
+            if (tryParseArgs(sts.args))
+                bPlayStop_Click(null, null);
+
+            ThreadPool.SetMaxThreads(64, 16);
         }
 
-        private void ParseArgs()
+        private bool tryParseArgs(string[] args)
         {
-            int l = sts.args.Length;
-            if (l < 1) return;
+            int l = args.Length;
+            if (l < 1)
+                return false;
 
-            byte willStart = 0; //0 - no, 1 - yes, 2 - errors
-            int c = 0;
-            while (c < l)
+
+            TriState willPlay = TriState.False;
+            int c = -1;
+            while (++c < l)
             {
 
                 if (sts.args[c].Contains("-load"))
                 {
                     if (sts.args[++c].Contains("jscp"))
+                    {
                         if (File.Exists(sts.args[c]))
                             loadPresetFile(sts.args[c]);
-                        else { c++; willStart = 2; }
-                    else { c++; willStart = 2; }
+                        else
+                            willPlay = TriState.Error;
+                    }
+                    else
+                        willPlay = TriState.Error;
                     continue;
                 }
 
+
                 if (sts.args[c].Contains("-start"))
                 {
-                    if (willStart == 0) willStart = 1;
-                    c++;
+                    if (willPlay == TriState.False)
+                        willPlay = TriState.True;
                     continue;
                 }
 
@@ -96,31 +126,28 @@ namespace JSoundCompressor
                     else
                     {
                         MessageBox.Show("Not found input device with name \"" + sts.args[c] + "\"");
-                        willStart = 2;
+                        willPlay = TriState.Error;
                     }
-                    c++;
                     continue;
                 }
 
                 if (sts.args[c].Contains("-output"))
                 {
-                    int i = cbOutput1.FindString(sts.args[++c]);
+                    int i = cbOutputMain.FindString(sts.args[++c]);
                     if (i > -1)
-                        cbOutput1.SelectedIndex = i;
+                        cbOutputMain.SelectedIndex = i;
                     else
                     {
                         MessageBox.Show("Not found output device with name \"" + sts.args[c] + "\"");
-                        willStart = 2;
+                        willPlay = TriState.Error;
                     }
-                    c++;
                     continue;
                 }
 
-                // there must be no legar way to skip all the if-s and be here, 99% error while printing
-                willStart = 2;
-                c++;
+                willPlay = TriState.Error;
             }
-            if (willStart == 1) bPlayStop_Click(null, null);
+            return (willPlay == TriState.True);
+
         }
 
         private void ReloadDevices()
@@ -130,17 +157,19 @@ namespace JSoundCompressor
                 panelCompressor.Top = 86;
                 cbInput2.Visible = true;
                 labelSecondInput.Visible = true;
+                cbChannelsSecond.Visible = true;
             }
             else
             {
                 panelCompressor.Top = 55;
                 cbInput2.Visible = false;
                 labelSecondInput.Visible = false;
+                cbChannelsSecond.Visible = false;
             }
 
             Height = sts.secondOutputEnabled
-                ? panelCompressor.Top + panelCompressor.Height + 31
-                : panelCompressor.Top + panelCompressor.Height;
+            ? panelCompressor.Top + panelCompressor.Height + 31
+            : panelCompressor.Top + panelCompressor.Height;
 
             cbInput1.Items.Clear();
             for (int n = -1; n < WaveIn.DeviceCount; n++)
@@ -157,11 +186,11 @@ namespace JSoundCompressor
                 cbInput2.SelectedIndex = 0;
             }
 
-            cbOutput1.Items.Clear();
+            cbOutputMain.Items.Clear();
             for (int n = -1; n < WaveOut.DeviceCount; n++)
-                cbOutput1.Items.Add(WaveOut.GetCapabilities(n).ProductName);
-            cbOutput1.Items.Add(" - NO out -");
-            cbOutput1.SelectedIndex = 0;
+                cbOutputMain.Items.Add(WaveOut.GetCapabilities(n).ProductName);
+            cbOutputMain.Items.Add(" - NO out -");
+            cbOutputMain.SelectedIndex = 0;
 
             if (sts.secondOutputEnabled)
             {
@@ -174,158 +203,382 @@ namespace JSoundCompressor
         }
 
 
-        private void waveIn1_DataAvailable(object sender, WaveInEventArgs e) =>
-            ThreadPool.QueueUserWorkItem(waveIn1_DataAvailableHandler, e);
+        private void waveInMain_DataAvailable(object sender, WaveInEventArgs e) =>
+            ThreadPool.QueueUserWorkItem(waveInMain_DataAvailableHandler, e);
 
-        private void waveIn1_DataAvailableHandler(object o)
+        private int WaveIn_callNumber = 0;
+        private void waveInMain_DataAvailableHandler(object o)
         {
             WaveInEventArgs e = (WaveInEventArgs)o;
             int bytesRecorded = e.BytesRecorded;
-            int shortRecorded = bytesRecorded / 2;
-            float in_db = 0f;
+            int shortsRecorded = bytesRecorded / 2;
 
-            short[] data = new short[bytesRecorded];
+            short[] audioDataSamples = new short[shortsRecorded];
+            Buffer.BlockCopy(e.Buffer, 0, audioDataSamples, 0, bytesRecorded);
 
+            float db_inputRaw = 0f;
 
-            Buffer.BlockCopy(e.Buffer, 0, data, 0, bytesRecorded);
-
-            if (cbBypass.Checked)
+            if (cbCompActive.Checked)
             {
+                float tempf;
+                float maxf = 0f;
+                for (int index = 0; index < shortsRecorded; index++)
+                {
+                    tempf = abs(audioDataSamples[index]);
+                    if (maxf < tempf)
+                        maxf = tempf;
+                    db_inputRaw += tempf * tempf * SCALE2;
+                }
+
+                db_inputRaw = (float)Decibels.LinearToDecibels(Math.Sqrt(db_inputRaw / shortsRecorded));
+                db_inputPeak = (float)(Decibels.LinearToDecibels(maxf / short.MaxValue));
+
+                if (float.IsNaN(db_inputRaw))
+                    db_inputRaw = 0;
+
+
+                // applying smoothing
+                db_inputFlat = db_inputFlat < db_inputRaw
+                    ? max((db_inputFlat * cmp_AttackSpeed + db_inputRaw) / (cmp_AttackSpeed + 1), -90f)
+                    : max((db_inputFlat * cmp_RelesSpeed + db_inputRaw) / (cmp_RelesSpeed + 1), -90f);
+
+
+                // applying preamp
+
+                db_inputAmp = db_inputFlat + cmp_preAmp;
+
+                if (db_inputRaw + cmp_preAmp >= -3.11f)
+                {
+                    tbCompPreamp.Value = (int)max(tbCompPreamp.Value - 1, tbCompPreamp.Minimum);
+                    tbCompPostAmp.Value = (int)min(tbCompPostAmp.Value + 2, tbCompPostAmp.Maximum);
+                }
+
+
+                //  trackBar1.Value = (int)max((db_inputAmp + 45) * 50, 1);
+
+                //applying compressor or noise gate
+
+                if (db_inputAmp > cmp_treshold)
+                    db_result = (cmp_treshold + (db_inputAmp - cmp_treshold) / cmp_ratio);
+                else if (db_inputAmp < cmp_ntreshold)
+                    db_result = (cmp_ntreshold - (cmp_ntreshold - db_inputAmp) / cmp_nratio);
+                else
+                    db_result = db_inputAmp;
+
+
+
+
+                // applying postAmp and slow limiter
+                db_resultLimited = min(db_result + cmp_postAmp, cmp_limitSlow);
+
+
+                db_delta = (db_resultLimited - db_inputFlat);
+
+                // applying fast limiter
+                if (db_inputRaw + db_delta > cmp_limitFast)
+                    db_delta -= db_inputRaw + db_delta - cmp_limitFast;
+
+                float db_outPeak = (db_inputPeak + db_delta);
+
+                if (db_outPeak >= -0.18f) //98%
+                {
+                    db_delta -= db_outPeak;
+                    tbCompPostAmp.Value = (int)max(tbCompPostAmp.Value - 1, tbCompPostAmp.Minimum);
+                }
+
+                db_deltaFloat = (float)Decibels.DecibelsToLinear(db_delta);
+
+                short temp;
+                switch (cmp_channelsMain)
+                {
+                    case Channels.L_Only:
+                        for (int index = 0; index < shortsRecorded; index++)
+                        {
+                            audioDataSamples[index] = (short)(db_deltaFloat * audioDataSamples[index]);
+                            audioDataSamples[++index] = 0;
+                        }
+                        break;
+
+                    case Channels.L_Mono:
+                        for (int index = 0; index < shortsRecorded; index++)
+                        {
+                            temp = (short)(db_deltaFloat * audioDataSamples[index]);
+                            audioDataSamples[index] = temp;
+                            audioDataSamples[++index] = temp;
+                        }
+                        break;
+
+
+                    case Channels.Stereo:
+                        for (int index = 0; index < shortsRecorded; index++)
+                        {
+                            audioDataSamples[index] = (short)(db_deltaFloat * audioDataSamples[index]);
+                        }
+                        break;
+
+                    case Channels.R_Mono:
+                        for (int index = 0; index < shortsRecorded; index++)
+                        {
+                            temp = (short)(db_deltaFloat * audioDataSamples[index + 1]);
+                            audioDataSamples[index] = temp;
+                            audioDataSamples[++index] = temp;
+
+                        }
+                        break;
+                    case Channels.R_Only:
+                        for (int index = 0; index < shortsRecorded; index++)
+                        {
+                            audioDataSamples[index] = 0;
+                            audioDataSamples[++index] = (short)(db_deltaFloat * audioDataSamples[index]);
+                        }
+                        break;
+                    case Channels.Mono:
+                        for (int index = 0; index < shortsRecorded; index++)
+                        {
+                            temp = (short)clamp(db_deltaFloat * (audioDataSamples[index] + audioDataSamples[index + 1]) * 0.7f, short.MaxValue);
+                            audioDataSamples[index] = temp;
+                            audioDataSamples[++index] = temp;
+                        }
+                        break;
+                }
+
+                Buffer.BlockCopy(audioDataSamples, 0, e.Buffer, 0, bytesRecorded);
+
                 buffer11.AddSamples(e.Buffer, 0, bytesRecorded);
 
-                for (int index = 0; index < shortRecorded; index++)
-                    in_db += data[index] * data[index] * norm2;
+                db2_inputRaw = db_inputRaw;
 
-                in_db = (float)Decibels.LinearToDecibels(Math.Sqrt(in_db / (bytesRecorded * 0.5)));
-
-                db_original = clamp((db_original + in_db) * 0.5f, 90f);
-
-                in_max = max(in_max - 0.05f, db_original);
-
-                if (WindowState != FormWindowState.Minimized)
-                {
-                    Invoke(new Action(() =>
+                if (visualise)
+                    if (WindowState != FormWindowState.Minimized)
                     {
-                        pMainIn.Width = (int)(5 * in_db + 300);
-                        pMixIn.Width = (int)(5 * db_original + 300);
-                        label_IN_FAST.Text = (db_original).ToString("0.0");
-                        label_IN_FAST.Left = lIN_RP - label_IN_FAST.Width;
+                        Invoke(new Action(() =>
+                        {
 
-                        pMix.PerformLayout();
-                    }));
+
+                            float output_width = min(304,
+                                                    max((float)Decibels.DecibelsToLinear(db_outPeak) * 300,
+                                                        pOutMain.Width - DROP_SPEED));
+                            db_outPeak = (float)Decibels.LinearToDecibels(output_width / 300);
+
+                            pInputRaw.Width = (int)max(maxf * 0.00915f, pInputRaw.Width - DROP_SPEED);
+                            pInputFlat.Width = (int)(5 * db_inputFlat + 300);
+                            pInputAmp.Width = (int)(5 * db_inputAmp + 300);
+
+                            pOutRes.Width = (int)(5 * db_result + 300);
+                            pOutAmp.Width = (int)(5 * db_resultLimited + 300);
+                            pOutMain.Width = (int)(output_width);
+
+                            if (db_outPeak > -0.01)
+                                pOutMain.BackColor = Color.OrangeRed;
+                            else if (db_outPeak > -1)
+                                pOutMain.BackColor = Color.Gold;
+                            else if (db_outPeak > -4)
+                                pOutMain.BackColor = Color.Yellow;
+                            else if (db_outPeak > -12)
+                                pOutMain.BackColor = Color.GreenYellow;
+                            else
+                                pOutMain.BackColor = Color.LightGreen;
+
+                            int delt = (int)clamp(5 * db_delta, 150);
+                            panelDelta.Width = (int)(abs(delt) == 0 ? 1 : abs(delt) + 1);
+                            panelDelta.Left = (delt > 0) ? 154 : 154 + delt;
+
+                            pMix.PerformLayout();
+                        }));
+                    }
+
+                if (WaveIn_callNumber == 5)
+                    return;
+                if (WaveIn_callNumber == 4)
+                {
+                    if (waveOutMainActive)
+                    {
+                        //  if (waveOutMain.PlaybackState != PlaybackState.Playing)
+                        waveOutMain.Play();
+                    }
+
+                    if (waveOutSecondActive)
+                    {
+                        //if (waveOutSecond != null)
+                        //   if (sts.secondOutputEnabled && waveOutSecond.PlaybackState != PlaybackState.Playing)
+                        waveOutSecond.Play();
+                    }
                 }
+                if (WaveIn_callNumber < 5)
+                    WaveIn_callNumber++;
             }
 
-            else
+            else // cmp disabled
             {
-                byte[] bytes = e.Buffer;
-                for (int index = 0; index < shortRecorded; index++)
-                    in_db += data[index] * data[index] * norm2;
 
-                in_db = (float)Decibels.LinearToDecibels(Math.Sqrt(in_db / shortRecorded));
 
-                if (float.IsNaN(db_original))
+                float tempf;
+                for (int index = 0; index < shortsRecorded; index++)
                 {
-                    db_original = 0f;
-                    db_originPre = 0f;
-                    db_delta = 0f;
-                    out_max = 0f;
-                    pWindowTitle.BackColor = Color.White;
+                    tempf = abs(audioDataSamples[index]);
+                    db_inputRaw += tempf * tempf * SCALE2;
+                }
+
+                db_inputRaw = (float)Decibels.LinearToDecibels(Math.Sqrt(db_inputRaw / shortsRecorded));
+
+                if (float.IsNaN(db_inputRaw))
+                    db_inputRaw = 0;
+
+                db_inputFlat = max((db_inputFlat * 2 + db_inputRaw) * 0.333f, -90f);
+
+
+
+                switch (cmp_channelsMain)
+                {
+                    case Channels.L_Only:
+                        for (int index = 1; index < shortsRecorded; index += 2)
+                        {
+                            audioDataSamples[index] = 0;
+                        }
+                        Buffer.BlockCopy(audioDataSamples, 0, e.Buffer, 0, bytesRecorded);
+                        buffer11.AddSamples(e.Buffer, 0, bytesRecorded);
+                        break;
+
+                    case Channels.L_Mono:
+                        for (int index = 0; index < shortsRecorded; index++)
+                        {
+                            audioDataSamples[index++] = audioDataSamples[index];
+                        }
+                        Buffer.BlockCopy(audioDataSamples, 0, e.Buffer, 0, bytesRecorded);
+                        buffer11.AddSamples(e.Buffer, 0, bytesRecorded);
+                        break;
+
+                    case Channels.Stereo:
+                        buffer11.AddSamples(e.Buffer, 0, bytesRecorded);
+                        break;
+
+                    case Channels.R_Mono:
+                        for (int index = 1; index < shortsRecorded; index += 2)
+                        {
+                            audioDataSamples[index] = audioDataSamples[index - 1];
+                        }
+                        Buffer.BlockCopy(audioDataSamples, 0, e.Buffer, 0, bytesRecorded);
+                        buffer11.AddSamples(e.Buffer, 0, bytesRecorded);
+                        break;
+                    case Channels.R_Only:
+                        for (int index = 0; index < shortsRecorded; index += 2)
+                        {
+                            audioDataSamples[index] = 0;
+                        }
+                        Buffer.BlockCopy(audioDataSamples, 0, e.Buffer, 0, bytesRecorded);
+                        buffer11.AddSamples(e.Buffer, 0, bytesRecorded);
+                        break;
+                    case Channels.Mono:
+                        for (int index = 0; index < shortsRecorded; index++)
+                        {
+                            short temp = (short)clamp((audioDataSamples[index] + audioDataSamples[index + 1]) * 0.7f, short.MaxValue);
+                            audioDataSamples[index] = temp;
+                            audioDataSamples[++index] = temp;
+                        }
+                        Buffer.BlockCopy(audioDataSamples, 0, e.Buffer, 0, bytesRecorded);
+                        buffer11.AddSamples(e.Buffer, 0, bytesRecorded);
+                        break;
                 }
 
 
-                db_original = db_original < in_db
-                    ? clamp((db_original * db_AttSpeed + in_db) / (db_AttSpeed + 1f), 90f)
-                    : clamp((db_original * db_RelSpeed + in_db) / (db_RelSpeed + 1f), 90f);
-
-                db_originPre = db_original + db_preAmp;
-
-                db_result = GetResultDB(db_originPre);
-
-                db_result += db_postAmp;
-
-                if (db_result > db_limitS) db_result = db_limitS;
-
-                db_delta = (db_result - db_original);
-
-                out_max = max(out_max - 0.05f, db_result); // for display OUT peak val 
-
-                //		-9       -2         -15
-                if (in_db + db_delta > db_limitF)
-                    //   -2     =   -15     - -11
-                    db_delta += db_limitF - (in_db + db_delta);
-
-                float_delta = (float)Decibels.DecibelsToLinear(db_delta);
-
-
-
-                for (int index = 0; index < bytes.Length; index += 2) //left + right
-                {
-                    float t1 = (int)(BitConverter.ToInt16(bytes, index) * float_delta);
-                    short t2 = clamp(t1, 32767);
-                    write2bytes(ref bytes, index, BitConverter.GetBytes(t2));
-                }
-
-                buffer11.AddSamples(bytes, 0, bytesRecorded);
-
-                if (WindowState != FormWindowState.Minimized)
-                {
-
-                    Invoke(new Action(() =>
+                if (visualise)
+                    if (WindowState != FormWindowState.Minimized)
                     {
-                        pMainIn.Width = (int)(5 * in_db + 300);
-                        pMixIn.Width = (int)(5 * min(0f, db_originPre) + 300);
-                        pMixOut.Width = (int)(5 * db_result + 300);
-                        label_IN_FAST.Text = (db_original).ToString("0.0");
+                        Invoke(new Action(() =>
+                      {
+                          pInputRaw.Width = (int)(5 * db_inputRaw + 300);
+                          pInputFlat.Width = (int)(5 * db_inputFlat + 300);
 
-                        float h = 5 * db_delta;
-                        if (h < -150) { panelDelta.BackColor = Color.Gray; h = -150; } else panelDelta.BackColor = Color.Orange;
-
-                        panelDelta.Width = (int)(abs(h) == 0 ? 1 : abs(h) + 1);
-                        panelDelta.Left = (h > 0) ? 191 : 191 + (int)h;
-                        labelMIX.Text = (db_delta).ToString("0.0");
-                        pMainOut.Width = (int)(5 * (in_db + db_delta) + 300);
-
-                        label_IN_FAST.Left = lIN_RP - label_IN_FAST.Width;
-                        labelMIX.Left = lMIX_RP - labelMIX.Width;
-
-                        pMix.PerformLayout();
-                    }));
-                }
-            }
-
-
-            if (playing == 5) return;
-            if (playing < 5) playing++;
-
-            if (playing == 4)
-            {
-                if (!noWaveOut1)
-                {
-                    if (waveOut11.PlaybackState != PlaybackState.Playing)
-                        waveOut11.Play();
-                    if (waveOut21 != null)
-                        if (sts.secondInputEnabled && waveOut21.PlaybackState != PlaybackState.Playing)
-                            waveOut21.Play();
-                }
-
-                if (!noWaveOut2)
-                {
-                    if (waveOut22 != null)
-                        if (sts.secondOutputEnabled && waveOut22.PlaybackState != PlaybackState.Playing)
-                            waveOut22.Play();
-                }
+                          pMix.PerformLayout();
+                      }));
+                    }
             }
         }
 
-        private void waveIn2_DataAvailable(object sender, WaveInEventArgs e) =>
-            ThreadPool.QueueUserWorkItem(waveIn2_DataAvailableHandler, e);
+        private void waveInSecond_DataAvailable(object sender, WaveInEventArgs e) =>
+            ThreadPool.QueueUserWorkItem(waveInSecond_DataAvailableHandler, e);
 
-        private void waveIn2_DataAvailableHandler(object o)
+        private void waveInSecond_DataAvailableHandler(object o)
         {
             WaveInEventArgs e = (WaveInEventArgs)o;
             if (sts.secondInputEnabled)
-                buffer21.AddSamples(e.Buffer, 0, e.BytesRecorded);
+            {
+                short temp;
+                if (cmp_channelsSecond == Channels.L_Only)
+                {
+                    int shortsRecorded = e.BytesRecorded / 2;
+                    short[] audioDataSamples = new short[shortsRecorded];
+                    Buffer.BlockCopy(e.Buffer, 0, audioDataSamples, 0, e.BytesRecorded);
+                    for (int index = 0; index < shortsRecorded; index++)
+                    {
+                        audioDataSamples[index] = (short)clamp(db_deltaFloat * audioDataSamples[index], short.MaxValue);
+                        audioDataSamples[++index] = 0;
+                    }
+                    Buffer.BlockCopy(audioDataSamples, 0, e.Buffer, 0, e.BytesRecorded);
+                    buffer21.AddSamples(e.Buffer, 0, e.BytesRecorded);
+                }
+                else if (cmp_channelsSecond == Channels.L_Mono)
+                {
+                    int shortsRecorded = e.BytesRecorded / 2;
+                    short[] audioDataSamples = new short[shortsRecorded];
+                    Buffer.BlockCopy(e.Buffer, 0, audioDataSamples, 0, e.BytesRecorded);
+                    for (int index = 0; index < shortsRecorded; index++)
+                    {
+                        temp = (short)clamp(db_deltaFloat * audioDataSamples[index], short.MaxValue);
+                        audioDataSamples[index] = temp;
+                        audioDataSamples[++index] = temp;
+                    }
+                    Buffer.BlockCopy(audioDataSamples, 0, e.Buffer, 0, e.BytesRecorded);
+                    buffer21.AddSamples(e.Buffer, 0, e.BytesRecorded);
+                }
+                else if (cmp_channelsSecond == Channels.Stereo)
+                {
+                    buffer21.AddSamples(e.Buffer, 0, e.BytesRecorded);
+                }
+                else if (cmp_channelsSecond == Channels.R_Mono)
+                {
+                    int shortsRecorded = e.BytesRecorded / 2;
+                    short[] audioDataSamples = new short[shortsRecorded];
+                    Buffer.BlockCopy(e.Buffer, 0, audioDataSamples, 0, e.BytesRecorded);
+                    for (int index = 0; index < shortsRecorded; index++)
+                    {
+                        temp = (short)clamp(db_deltaFloat * audioDataSamples[index + 1], short.MaxValue);
+                        audioDataSamples[index] = temp;
+                        audioDataSamples[++index] = temp;
+
+                    }
+                    Buffer.BlockCopy(audioDataSamples, 0, e.Buffer, 0, e.BytesRecorded);
+                    buffer21.AddSamples(e.Buffer, 0, e.BytesRecorded);
+                }
+                else if (cmp_channelsSecond == Channels.R_Only)
+                {
+                    int shortsRecorded = e.BytesRecorded / 2;
+                    short[] audioDataSamples = new short[shortsRecorded];
+                    Buffer.BlockCopy(e.Buffer, 0, audioDataSamples, 0, e.BytesRecorded);
+                    for (int index = 0; index < shortsRecorded; index++)
+                    {
+                        audioDataSamples[index] = 0;
+                        audioDataSamples[++index] = (short)clamp(db_deltaFloat * audioDataSamples[index], short.MaxValue);
+                    }
+                    Buffer.BlockCopy(audioDataSamples, 0, e.Buffer, 0, e.BytesRecorded);
+                    buffer21.AddSamples(e.Buffer, 0, e.BytesRecorded);
+                }
+                else if (cmp_channelsSecond == Channels.Mono)
+                {
+                    int shortsRecorded = e.BytesRecorded / 2;
+                    short[] audioDataSamples = new short[shortsRecorded];
+                    Buffer.BlockCopy(e.Buffer, 0, audioDataSamples, 0, e.BytesRecorded);
+                    for (int index = 0; index < shortsRecorded; index++)
+                    {
+                        temp = (short)clamp(db_deltaFloat * (audioDataSamples[index] + audioDataSamples[index + 1] * 0.7f), short.MaxValue);
+                        audioDataSamples[index] = temp;
+                        audioDataSamples[++index] = temp;
+                    }
+                    Buffer.BlockCopy(audioDataSamples, 0, e.Buffer, 0, e.BytesRecorded);
+                    buffer21.AddSamples(e.Buffer, 0, e.BytesRecorded);
+                }
+            }
+
             if (sts.secondOutputEnabled)
                 buffer22.AddSamples(e.Buffer, 0, e.BytesRecorded);
         }
@@ -345,119 +598,127 @@ namespace JSoundCompressor
 
         private float max(float a, float b) => (a > b) ? a : b;
 
-        private short clamp(float t1, int p)
+        private float clamp(float number, float limit)
         {
-            if (t1 > p) t1 = p;
-            if (t1 < -p) t1 = -p;
-            return (short)t1;
-        }
-
-        private float clamp(float t1, float p)
-        {
-            if (t1 > p) t1 = p;
-            if (t1 < -p) t1 = -p;
-            return t1;
+            if (limit < 0)
+                limit = -limit;
+            if (number > limit)
+                number = limit;
+            if (number < -limit)
+                number = -limit;
+            return number;
         }
         #endregion
 
 
-        private float GetResultDB(float dbIn) =>
-            /*  if (dbIn > db_treshold)
-    {
-    if (db_ratio == 1 ) return dbIn;
-    return dbIn / db_ratio + db_treshold / ((1 / (db_ratio - 1)) + 1);
-    }
-    else
-    {
-    if (dbIn > db_ntreshold) return dbIn;
-    if (db_nratio == 1) return dbIn;
-    return dbIn / db_nratio + db_ntreshold / ((1 / (db_nratio - 1)) + 1);
-    }  */
+        #region App interface
 
-            dbIn > db_treshold
-                ? db_ratio == 1 ? dbIn : dbIn / db_ratio + db_treshold / ((1 / (db_ratio - 1)) + 1)
-                : dbIn > db_ntreshold ? dbIn : db_nratio == 1 ? dbIn : dbIn / db_nratio + db_ntreshold / ((1 / (db_nratio - 1)) + 1);
+        private void bTopMost_Click(object sender, EventArgs e) => TopMost = !TopMost;
 
-
-        private void PlayPress()
+        private void bTray_Click(object sender, EventArgs e)
         {
-            if (waveIn1 != null)
+            WindowState = FormWindowState.Minimized;
+            Hide();
+        }
+
+        private void bMinimise_Click(object sender, EventArgs e) =>
+        WindowState = FormWindowState.Minimized;
+
+        private void bClose_Click(object sender, EventArgs e) => Application.Exit();
+
+
+        private void bPlayStop_Click(object sender, EventArgs e)
+        {
+            if (bPlay.Text == "STOP")
+            {
+                Stop();
+                bPlay.Text = "PLAY";
+            }
+            else
+            {
+                Play();
+                bPlay.Text = "STOP";
+            }
+
+            WaveIn_callNumber = 0;
+        }
+
+        private void Play()
+        {
+            if (waveInMain != null)
             {
                 buffer11 = new BufferedWaveProvider(new WaveFormat(sts.freq_int, 16, 2))
                 {
                     DiscardOnBufferOverflow = true,
                     BufferDuration = TimeSpan.FromMilliseconds(sts.outputMS_int)
                 };
-                waveIn1.StartRecording();
+                waveInMain.StartRecording();
             }
 
-            if (sts.secondInputEnabled && waveIn2 != null)
+            if (sts.secondInputEnabled && waveInSecond != null)
             {
                 buffer21 = new BufferedWaveProvider(new WaveFormat(sts.freq_int, 16, 2))
                 {
                     DiscardOnBufferOverflow = true,
                     BufferDuration = TimeSpan.FromMilliseconds(sts.outputMS_int)
                 };
-                waveIn2.StartRecording();
-            }
+                waveInSecond.StartRecording();
 
-            if (sts.secondOutputEnabled && waveIn2 != null)
-            {
-                buffer22 = new BufferedWaveProvider(new WaveFormat(sts.freq_int, 16, 2))
+                if (sts.secondOutputEnabled)
                 {
-                    DiscardOnBufferOverflow = true,
-                    BufferDuration = TimeSpan.FromMilliseconds(sts.outputMS_int)
-                };
-                if (!sts.secondInputEnabled)
-                    waveIn2.StartRecording();
-            }
-
-
-
-            if (!noWaveOut1)
-            {
-                if (waveOut11 != null)
-                {
-                    waveOut11.Init(buffer11.ToSampleProvider());
-                    playing = 0;
-                }
-                if (waveOut21 != null && sts.secondInputEnabled)
-                {
-                    waveOut21.Init(buffer21.ToSampleProvider());
+                    buffer22 = new BufferedWaveProvider(new WaveFormat(sts.freq_int, 16, 2))
+                    {
+                        DiscardOnBufferOverflow = true,
+                        BufferDuration = TimeSpan.FromMilliseconds(sts.outputMS_int)
+                    };
                 }
             }
-            else
-                cbBypass.Checked = true;
 
-            if (!noWaveOut2)
+            mixer = buffer11 != null && buffer21 != null
+                ? new MixingSampleProvider(new[] { buffer11.ToSampleProvider(), buffer21.ToSampleProvider() })
+                : null;
+
+
+            if (waveOutMainActive)
             {
-                if (waveOut22 != null && sts.secondOutputEnabled)
+                if (mixer != null)
+                    waveOutMain.Init(mixer);
+                else
+                    waveOutMain.Init(buffer11.ToSampleProvider());
+            }
+
+            if (waveOutSecondActive)
+            {
+                if (waveOutSecond != null && sts.secondOutputEnabled)
                 {
-                    waveOut22.Init(buffer22.ToSampleProvider());
+                    waveOutSecond.Init(buffer22.ToSampleProvider());
                 }
             }
 
             bSettings.Enabled = false;
             cbInput1.Enabled = false;
             cbInput2.Enabled = false;
-            cbOutput1.Enabled = false;
+            cbOutputMain.Enabled = false;
             cbOutput2.Enabled = false;
 
             bSavePreset.Enabled = false;
-            bLoadPreset.Enabled = false;
+            bLoadPreset.Enabled = cbCompActive.Checked || bSavePreset.Enabled;
         }
 
-        private void StopPress()
+        private void Stop()
         {
-            if (waveIn1 != null) waveIn1.StopRecording();
-            if (waveIn2 != null) waveIn2.StopRecording();
-            if (waveOut11 != null) waveOut11.Stop();
-            if (waveOut21 != null) waveOut21.Stop();
-            if (waveOut22 != null) waveOut22.Stop();
+            if (waveInMain != null)
+                waveInMain.StopRecording();
+            if (waveInSecond != null)
+                waveInSecond.StopRecording();
+            if (waveOutMain != null)
+                waveOutMain.Stop();
+            if (waveOutSecond != null)
+                waveOutSecond.Stop();
 
             cbInput1.Enabled = true;
             cbInput2.Enabled = true;
-            cbOutput1.Enabled = true;
+            cbOutputMain.Enabled = true;
             cbOutput2.Enabled = true;
             bSettings.Enabled = true;
 
@@ -465,161 +726,167 @@ namespace JSoundCompressor
             bLoadPreset.Enabled = true;
         }
 
+        private void bSettings_Click(object sender, EventArgs e)
+        {
+            using (FormSettings fs = new FormSettings())
+            {
+                sts.changed = false;
+                Enabled = false;
+                fs.ShowDialog();
+                Enabled = true;
+                if (sts.changed)
+                    ReloadDevices();
+            }
+        }
+
+        private void notifyIcon1_Click(object sender, EventArgs e)
+        {
+            Show();
+            WindowState = FormWindowState.Normal;
+        }
+
+        private void ShowAbout() => MessageBox.Show(
+        "VST-like compressor, but for Windows audio streams\n" +
+        "Version 2 include repeaters, limiters and more\n\n" +
+        "Author: Jenyaza01\njenyaza01@gmail.com\n\n" +
+        "Powered by NAudio\ngithub.com/naudio/NAudio", "About");
+
 
         private void cbInput1_SelectedIndexChanged(object sender, EventArgs e)
         {
-            if (waveIn1 != null)
+            if (waveInMain != null)
             {
-                waveIn1.DataAvailable -= waveIn1_DataAvailable;
+                waveInMain.DataAvailable -= waveInMain_DataAvailable;
                 //	waveIn1.StopRecording();
-                waveIn1.Dispose();
+                waveInMain.Dispose();
             }
 
-            waveIn1 = new WaveInEvent() { DeviceNumber = cbInput1.SelectedIndex - 1 };
-            waveIn1.WaveFormat = new WaveFormat(
+            waveInMain = new WaveInEvent() { DeviceNumber = cbInput1.SelectedIndex - 1 };
+            waveInMain.WaveFormat = new WaveFormat(
             int.Parse(sts.freq), 16, 2);
-            waveIn1.DataAvailable += waveIn1_DataAvailable;
-            waveIn1.BufferMilliseconds = sts.inputMS_int;
+            waveInMain.DataAvailable += waveInMain_DataAvailable;
+            waveInMain.BufferMilliseconds = sts.inputMS_int;
         }
 
-        private void cbOutput_SelectedIndexChanged(object sender, EventArgs e)
+        private void cbOutputMain_SelectedIndexChanged(object sender, EventArgs e)
         {
-            if (waveOut11 != null)
+            if (waveOutMain != null)
             {
-                waveOut11.Stop();
-                waveOut11.Dispose();
+                waveOutMain.Stop();
+                waveOutMain.Dispose();
             }
 
-            if (waveOut21 != null)
+            if (cbOutputMain.Text.Contains("NO out"))
             {
-                waveOut21.Stop();
-                waveOut21.Dispose();
-            }
-
-            if (cbOutput1.Text.Contains("NO out"))
-            {
-                noWaveOut1 = true;
-                cbOutput2.Text = " - NO out -";
-                cbOutput2.Enabled = false;
+                waveOutMainActive = false;
                 return;
             }
             else
             {
-                noWaveOut1 = false;
-                cbOutput2.Enabled = true;
+                waveOutMainActive = true;
             }
 
-            waveOut11 = new WaveOut() { DeviceNumber = cbOutput1.SelectedIndex - 1 };
-            waveOut11.DesiredLatency = sts.outputMS_int;
-            waveOut11.NumberOfBuffers = waveOut11.DesiredLatency / 9;
+            waveOutMain = new WaveOut() { DeviceNumber = cbOutputMain.SelectedIndex - 1 };
+            waveOutMain.DesiredLatency = sts.outputMS_int;
+            waveOutMain.NumberOfBuffers = waveOutMain.DesiredLatency / 9;
+        }
 
-            if (sts.secondInputEnabled)
+        private void cbInput2_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (waveInSecond != null)
             {
-                waveOut21 = new WaveOut() { DeviceNumber = cbOutput1.SelectedIndex - 1 };
-                waveOut21.DesiredLatency = sts.outputMS_int;
-                waveOut21.NumberOfBuffers = waveOut21.DesiredLatency / 9;
+                waveInSecond.DataAvailable -= waveInSecond_DataAvailable;
+                waveInSecond.StopRecording();
+                waveInSecond.Dispose();
+            }
+            if (cbInput2.Text.Contains("NO input"))
+                return;
+
+            waveInSecond = new WaveInEvent() { DeviceNumber = cbInput2.SelectedIndex };
+            waveInSecond.WaveFormat = new WaveFormat(sts.freq_int, 16, 2);
+            waveInSecond.DataAvailable += waveInSecond_DataAvailable;
+            waveInSecond.BufferMilliseconds = sts.inputMS_int;
+        }
+
+        private void cbOutput2_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (waveOutSecond != null)
+            {
+                waveOutSecond.Stop();
+                waveOutSecond.Dispose();
+            }
+
+            if (cbOutput2.Text.Contains("NO out"))
+            { waveOutSecondActive = false; return; }
+            else
+                waveOutSecondActive = true;
+
+            if (sts.secondOutputEnabled)
+            {
+                waveOutSecond = new WaveOut() { DeviceNumber = cbOutput2.SelectedIndex };
+                waveOutSecond.DesiredLatency = sts.outputMS_int;
+                waveOutSecond.NumberOfBuffers = waveOutSecond.DesiredLatency / 9;
             }
         }
 
 
-        #region compressor interface 
+        private void cbChannelsMain_IndexChanged(object sender, EventArgs e) =>
+        cmp_channelsMain = (Channels)cbChannelsMain.SelectedIndex;
 
-        private void tbCompPreamp_ValueChanged(object sender, EventArgs e)
+        private void cbChannelsSecond_IndexChanged(object sender, EventArgs e) =>
+        cmp_channelsSecond = (Channels)(cbChannelsSecond.SelectedIndex);
+
+
+
+        private bool visualise = true;
+        private Thread t;
+        private void button1_Click(object sender, EventArgs e)
         {
-            db_preAmp = tbCompPreamp.Value;
-            labelPreampVal.Text = db_preAmp.ToString("0dB");
-        }
+            visualise = !visualise;
 
-        private void tbCompTreshold_ValueChanged(object sender, EventArgs e)
-        {
-            db_treshold = tbCompTreshold.Value;
-            labelTresholdVal.Text = db_treshold.ToString("0dB");
-            if (db_treshold < db_ntreshold) tbCompNTreshold.Value = tbCompTreshold.Value;
-        }
-
-        private void tbCompRatio_ValueChanged(object sender, EventArgs e)
-        {
-            db_ratio = tbCompRatio.Value / 10f;
-            labelRatioVal.Text = db_ratio.ToString("1:0.0");
-        }
-
-        private void tbCompPostAmp_ValueChanged(object sender, EventArgs e)
-        {
-            db_postAmp = tbCompPostAmp.Value;
-            labelPostAmpVal.Text = db_postAmp.ToString("0dB");
-        }
-
-        private void tbCompPreamp_MouseDown(object sender, MouseEventArgs e)
-        {
-            if (e.Button == System.Windows.Forms.MouseButtons.Right)
-                tbCompPreamp.Value = 0;
-        }
-
-        private void tbCompTreshold_MouseDown(object sender, MouseEventArgs e)
-        {
-            if (e.Button == System.Windows.Forms.MouseButtons.Right)
-                tbCompTreshold.Value = -18;
-        }
-
-        private void tbCompRatio_MouseDown(object sender, MouseEventArgs e)
-        {
-            if (e.Button == System.Windows.Forms.MouseButtons.Right)
-                tbCompRatio.Value = 20;
-        }
-
-        private void tbCompPostAmp_MouseDown(object sender, MouseEventArgs e)
-        {
-            if (e.Button == System.Windows.Forms.MouseButtons.Right)
-                tbCompPostAmp.Value = 0;
-        }
-
-        private void tbCompNRatio_ValueChanged(object sender, EventArgs e)
-        {
-            db_nratio = tbCompNRatio.Value * 0.1f;
-            labelNRatioVal.Text = db_nratio.ToString("1:0.0");
-        }
-
-        private void tbCompNRatio_MouseDown(object sender, MouseEventArgs e)
-        {
-            if (e.Button == System.Windows.Forms.MouseButtons.Right)
-                tbCompNRatio.Value = 10;
-        }
-
-        private void tbCompLimitS_ValueChanged(object sender, EventArgs e)
-        {
-            db_limitS = tbCompLimitS.Value * 0.5f;
-            labelLimiterVal.Text = db_limitS.ToString("0.0dB");
-        }
-
-        private void tbCompLimitS_MouseDown(object sender, MouseEventArgs e)
-        {
-            if (e.Button == MouseButtons.Right)
-                tbCompLimitS.Value = -8;
-        }
-
-        private void tbCompLimitF_MouseDown(object sender, MouseEventArgs e)
-        {
-            if (e.Button == MouseButtons.Right)
-                tbCompLimitF.Value = -8;
-        }
-        #endregion
-
-
-        private void cbCompressBypass_CheckedChanged(object sender, EventArgs e)
-        {
-            bool c = !cbBypass.Checked;
-            grCompress.Enabled = c;
-            labelMIX.Visible = c;
-            panelDelta.Visible = c;
-            pMixOut.Visible = c;
-            pMixIn.Visible = c;
-            pMainOut.Visible = c;
+            if (visualise)
+            {
+                button1.Text = "on";
+                panelDelta.Visible = true;
+                if (t != null)
+                    t.Abort();
+            }
+            else
+            {
+                button1.Text = "<<";
+                panelDelta.Visible = false;
+                t = new Thread(Dissipate);
+                t.Start();
+            }
 
         }
 
-        private void bClose_Click(object sender, EventArgs e) => Application.Exit();
+        private void Dissipate()
+        {
+            float inputRaw = db2_inputRaw;
+            float inputFlat = db_inputFlat;
+            float inputAmp = db_inputAmp;
+            float result = db_result;
+            float resultLimited = db_resultLimited;
 
-        private void bMinimise_Click(object sender, EventArgs e) => WindowState = FormWindowState.Minimized;
+            int times = 100;
+            while (times-- > 1)
+            {
+                pInputRaw.Width = (int)(pInputRaw.Width * 0.96f);
+                pInputFlat.Width = (int)(pInputFlat.Width * 0.97f);
+                pInputAmp.Width = (int)(pInputAmp.Width * 0.97f);
+
+                pOutRes.Width = (int)(pOutRes.Width * 0.97f);
+                pOutAmp.Width = (int)(pOutAmp.Width * 0.97f);
+                pOutMain.Width = (int)(pOutMain.Width * 0.96f);
+
+                pMix.PerformLayout();
+                Thread.Sleep(10);
+            }
+            button1.Text = "off";
+        }
+
+        private void button2_Click(object sender, EventArgs e) => ShowAbout();
 
 
 
@@ -647,103 +914,21 @@ namespace JSoundCompressor
 
         private void title_MouseUp(object sender, MouseEventArgs e) => titleMove = false;
 
+        #endregion
 
-        private void aboutToolStripMenuItem_Click(object sender, EventArgs e) =>
-            MessageBox.Show("VST-like compressor, but for Windows audio streams\nVersion 2 include repeaters\n\nAuthor: Jenyaza01\njenyaza01@gmail.com\n\nPowered by NAudio\ngithub.com/naudio/NAudio", "About");
 
-        private void tbCompAttackSpeed_MouseDown(object sender, MouseEventArgs e)
+        #region compressor interface 
+
+        private void cbCompActive_CheckedChanged(object sender, EventArgs e)
         {
-            if (e.Button == System.Windows.Forms.MouseButtons.Right)
-                tbCompAttackSpeed.Value = 3;
-        }
+            grCompress.Enabled = cbCompActive.Checked;
+            panelDelta.Visible = cbCompActive.Checked;
 
-        private void tbCompAttackSpeed_ValueChanged(object sender, EventArgs e)
-        {
-            db_AttSpeed = tbCompAttackSpeed.Value;
-            labelAttackVal.Text = (db_AttSpeed * sts.inputMS_int).ToString("0ms");
-            if (db_RelSpeed < db_AttSpeed) tbCompReleaseSpeed.Value = tbCompAttackSpeed.Value;
-        }
-
-        private void tbCompReleaseSpeed_MouseDown(object sender, MouseEventArgs e)
-        {
-            if (e.Button == System.Windows.Forms.MouseButtons.Right)
-                tbCompReleaseSpeed.Value = 5;
-        }
-
-        private void tbCompReleaseSpeed_ValueChanged(object sender, EventArgs e)
-        {
-            db_RelSpeed = tbCompReleaseSpeed.Value;
-            if (db_RelSpeed < db_AttSpeed) tbCompAttackSpeed.Value = tbCompReleaseSpeed.Value;
-            labelReleaseVal.Text = (db_RelSpeed * sts.inputMS_int).ToString("0ms");
-        }
-
-        private void bPlayStop_Click(object sender, EventArgs e)
-        {
-            if (bPlay.Text == "STOP")
-            {
-                StopPress();
-                bPlay.Text = "PLAY";
-            }
-            else
-            {
-                PlayPress();
-                bPlay.Text = "STOP";
-            }
-            in_max = -100f;
-            out_max = -100f;
-        }
-
-        private void tbCompNTreshold_MouseDown(object sender, MouseEventArgs e)
-        {
-            if (e.Button == System.Windows.Forms.MouseButtons.Right)
-                tbCompNTreshold.Value = -36;
-        }
-
-        private void tbCompNTreshold_ValueChanged(object sender, EventArgs e)
-        {
-            db_ntreshold = tbCompNTreshold.Value;
-            labelNTresholdVal.Text = (db_ntreshold).ToString("0dB");
-            if (db_treshold < db_ntreshold) tbCompTreshold.Value = tbCompNTreshold.Value;
-        }
-
-        private void button3_Click(object sender, EventArgs e)
-        {
-            WindowState = FormWindowState.Minimized;
-            Hide();
-        }
-
-
-        private void cbOutput2_SelectedIndexChanged(object sender, EventArgs e)
-        {
-            if (waveOut22 != null)
-            {
-                waveOut22.Stop();
-                waveOut22.Dispose();
-            }
-
-            if (cbOutput2.Text.Contains("NO out")) { noWaveOut2 = true; return; } else noWaveOut2 = false;
-
-            if (sts.secondOutputEnabled)
-            {
-                waveOut22 = new WaveOut() { DeviceNumber = cbOutput2.SelectedIndex };
-                waveOut22.DesiredLatency = sts.outputMS_int;
-                waveOut22.NumberOfBuffers = waveOut22.DesiredLatency / 9;
-            }
-        }
-
-
-        private void alwaysOnTopToolStripMenuItem_Click(object sender, EventArgs e) => alwaysOnTopToolStripMenuItem.Checked = (TopMost = !TopMost);
-
-        private void tbLimitF_ValueChanged(object sender, EventArgs e)
-        {
-            db_limitF = tbCompLimitF.Value * 0.5f;
-            labelFLimitVal.Text = db_limitF.ToString("0.0dB");
-        }
-
-        private void notifyIcon1_Click(object sender, EventArgs e)
-        {
-            Show();
-            WindowState = FormWindowState.Normal;
+            pInputAmp.Visible = cbCompActive.Checked;
+            pOutRes.Visible = cbCompActive.Checked;
+            pOutAmp.Visible = cbCompActive.Checked;
+            pOutMain.Visible = cbCompActive.Checked;
+            bLoadPreset.Enabled = cbCompActive.Checked || bSavePreset.Enabled;
         }
 
         private void bSave_Click(object sender, EventArgs e)
@@ -772,7 +957,6 @@ namespace JSoundCompressor
                         fw.WriteLine(tbCompLimitF.Value.ToString());
                 }
         }
-
         private void bLoad_Click(object sender, EventArgs e)
         {
             OpenFileDialog fod = new OpenFileDialog
@@ -783,7 +967,6 @@ namespace JSoundCompressor
             if (fod.ShowDialog() == DialogResult.OK)
                 loadPresetFile(fod.FileName);
         }
-
         public void loadPresetFile(string filename)
         {
             using (StreamReader fr = new StreamReader(filename))
@@ -804,33 +987,129 @@ namespace JSoundCompressor
             }
         }
 
-        private void cbInput2_SelectedIndexChanged(object sender, EventArgs e)
+        private void tbCompPreamp_MouseDown(object sender, MouseEventArgs e)
         {
-            if (waveIn2 != null)
-            {
-                waveIn2.DataAvailable -= waveIn2_DataAvailable;
-                waveIn2.StopRecording();
-                waveIn2.Dispose();
-            }
-            if (cbInput2.Text.Contains("NO input")) return;
-
-            waveIn2 = new WaveInEvent() { DeviceNumber = cbInput2.SelectedIndex };
-            waveIn2.WaveFormat = new WaveFormat(sts.freq_int, 16, 2);
-            waveIn2.DataAvailable += waveIn2_DataAvailable;
-            waveIn2.BufferMilliseconds = sts.inputMS_int;
+            if (e.Button == System.Windows.Forms.MouseButtons.Right)
+                tbCompPreamp.Value = 0;
+        }
+        private void tbCompPreamp_ValueChanged(object sender, EventArgs e)
+        {
+            cmp_preAmp = tbCompPreamp.Value / 2f;
+            labelPreampVal.Text = cmp_preAmp.ToString("0.0dB");
         }
 
-        private void bSettings_Click(object sender, EventArgs e)
+        private void tbCompAttackSpeed_MouseDown(object sender, MouseEventArgs e)
         {
-            using (FormSettings fs = new FormSettings())
-            {
-                sts.changed = false;
-                Enabled = false;
-                fs.ShowDialog();
-                Enabled = true;
-                if (sts.changed)
-                    ReloadDevices();
-            }
+            if (e.Button == System.Windows.Forms.MouseButtons.Right)
+                tbCompAttackSpeed.Value = 3;
         }
+        private void tbCompAttackSpeed_ValueChanged(object sender, EventArgs e)
+        {
+            cmp_AttackSpeed = tbCompAttackSpeed.Value;
+            labelAttackVal.Text = (cmp_AttackSpeed * sts.inputMS_int).ToString("0ms");
+            if (cmp_RelesSpeed < cmp_AttackSpeed)
+                tbCompReleaseSpeed.Value = tbCompAttackSpeed.Value;
+        }
+
+        private void tbCompReleaseSpeed_MouseDown(object sender, MouseEventArgs e)
+        {
+            if (e.Button == System.Windows.Forms.MouseButtons.Right)
+                tbCompReleaseSpeed.Value = 4;
+        }
+        private void tbCompReleaseSpeed_ValueChanged(object sender, EventArgs e)
+        {
+            cmp_RelesSpeed = tbCompReleaseSpeed.Value;
+            if (cmp_RelesSpeed < cmp_AttackSpeed)
+                tbCompAttackSpeed.Value = tbCompReleaseSpeed.Value;
+            labelReleaseVal.Text = (cmp_RelesSpeed * sts.inputMS_int).ToString("0ms");
+        }
+
+        private void tbCompTreshold_MouseDown(object sender, MouseEventArgs e)
+        {
+            if (e.Button == System.Windows.Forms.MouseButtons.Right)
+                tbCompTreshold.Value = -18;
+        }
+        private void tbCompTreshold_ValueChanged(object sender, EventArgs e)
+        {
+            cmp_treshold = tbCompTreshold.Value;
+            labelTresholdVal.Text = cmp_treshold.ToString("0dB");
+            if (cmp_treshold < cmp_ntreshold)
+                tbCompNTreshold.Value = tbCompTreshold.Value;
+        }
+
+        private void tbCompRatio_MouseDown(object sender, MouseEventArgs e)
+        {
+            if (e.Button == System.Windows.Forms.MouseButtons.Right)
+                tbCompRatio.Value = 18;
+        }
+        private void tbCompRatio_ValueChanged(object sender, EventArgs e)
+        {
+            cmp_ratio = (float)Math.Exp(tbCompRatio.Value / 20f) - 1f;
+            labelRatioVal.Text = (cmp_ratio < 1)
+            ? cmp_ratio.ToString("1:0.00")
+            : cmp_ratio.ToString("1:0.0");
+        }
+
+        private void tbCompNTreshold_MouseDown(object sender, MouseEventArgs e)
+        {
+            if (e.Button == System.Windows.Forms.MouseButtons.Right)
+                tbCompNTreshold.Value = -40;
+        }
+        private void tbCompNTreshold_ValueChanged(object sender, EventArgs e)
+        {
+            cmp_ntreshold = tbCompNTreshold.Value;
+            labelNTresholdVal.Text = (cmp_ntreshold).ToString("0dB");
+            if (cmp_treshold < cmp_ntreshold)
+                tbCompTreshold.Value = tbCompNTreshold.Value;
+        }
+
+        private void tbCompNRatio_MouseDown(object sender, MouseEventArgs e)
+        {
+            if (e.Button == System.Windows.Forms.MouseButtons.Right)
+                tbCompNRatio.Value = 21;
+        }
+        private void tbCompNRatio_ValueChanged(object sender, EventArgs e)
+        {
+            cmp_nratio = (float)Math.Exp(tbCompNRatio.Value / 30f) - 1f;
+            labelNRatioVal.Text = (cmp_nratio < 1)
+            ? cmp_nratio.ToString("1:0.00")
+            : cmp_nratio.ToString("1:0.0");
+        }
+
+        private void tbCompPostAmp_MouseDown(object sender, MouseEventArgs e)
+        {
+            if (e.Button == System.Windows.Forms.MouseButtons.Right)
+                tbCompPostAmp.Value = 0;
+        }
+        private void tbCompPostAmp_ValueChanged(object sender, EventArgs e)
+        {
+            cmp_postAmp = tbCompPostAmp.Value / 2f;
+            labelPostAmpVal.Text = cmp_postAmp.ToString("0.0dB");
+        }
+
+        private void tbCompLimitS_MouseDown(object sender, MouseEventArgs e)
+        {
+            if (e.Button == MouseButtons.Right)
+                tbCompLimitS.Value = -8;
+        }
+        private void tbCompLimitS_ValueChanged(object sender, EventArgs e)
+        {
+            cmp_limitSlow = tbCompLimitS.Value * 0.5f;
+            labelLimiterVal.Text = cmp_limitSlow.ToString("0.0dB");
+        }
+
+        private void tbCompLimitF_MouseDown(object sender, MouseEventArgs e)
+        {
+            if (e.Button == MouseButtons.Right)
+                tbCompLimitF.Value = -8;
+        }
+        private void tbCompLimitF_ValueChanged(object sender, EventArgs e)
+        {
+            cmp_limitFast = tbCompLimitF.Value * 0.5f;
+            labelFLimitVal.Text = cmp_limitFast.ToString("0.0dB");
+        }
+
+        #endregion
+
     }
 }

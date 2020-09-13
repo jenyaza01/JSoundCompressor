@@ -31,9 +31,8 @@
             this.components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(FormMain));
             this.cbInput1 = new System.Windows.Forms.ComboBox();
-            this.cbOutput1 = new System.Windows.Forms.ComboBox();
-            this.pMixIn = new System.Windows.Forms.Panel();
-            this.label_IN_FAST = new System.Windows.Forms.Label();
+            this.cbOutputMain = new System.Windows.Forms.ComboBox();
+            this.pInputFlat = new System.Windows.Forms.Panel();
             this.grCompress = new System.Windows.Forms.GroupBox();
             this.labelFLimitVal = new System.Windows.Forms.Label();
             this.label2 = new System.Windows.Forms.Label();
@@ -65,14 +64,12 @@
             this.tbCompAttackSpeed = new System.Windows.Forms.TrackBar();
             this.tbCompNTreshold = new System.Windows.Forms.TrackBar();
             this.labelNTreshold = new System.Windows.Forms.Label();
-            this.cbBypass = new System.Windows.Forms.CheckBox();
-            this.labelMIX = new System.Windows.Forms.Label();
+            this.cbCompActive = new System.Windows.Forms.CheckBox();
             this.panelDelta = new System.Windows.Forms.Panel();
             this.pWindowTitle = new System.Windows.Forms.Panel();
-            this.contextMenuStrip1 = new System.Windows.Forms.ContextMenuStrip(this.components);
-            this.aboutToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.alwaysOnTopToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.bHideTray = new System.Windows.Forms.Button();
+            this.button2 = new System.Windows.Forms.Button();
+            this.bTopMost = new System.Windows.Forms.Button();
+            this.bTray = new System.Windows.Forms.Button();
             this.bMinimise = new System.Windows.Forms.Button();
             this.bClose = new System.Windows.Forms.Button();
             this.labelWindowTitle = new System.Windows.Forms.Label();
@@ -83,22 +80,29 @@
             this.labelMainInput = new System.Windows.Forms.Label();
             this.labelSecondInput = new System.Windows.Forms.Label();
             this.panelCompressor = new System.Windows.Forms.Panel();
-            this.panel9 = new System.Windows.Forms.Panel();
+            this.panel10 = new System.Windows.Forms.Panel();
             this.pMix = new System.Windows.Forms.Panel();
-            this.pMixOut = new System.Windows.Forms.Panel();
-            this.pMainOut = new System.Windows.Forms.Panel();
-            this.pMainIn = new System.Windows.Forms.Panel();
+            this.pOutRes = new System.Windows.Forms.Panel();
+            this.pInputAmp = new System.Windows.Forms.Panel();
+            this.pOutAmp = new System.Windows.Forms.Panel();
+            this.pOutMain = new System.Windows.Forms.Panel();
+            this.pInputRaw = new System.Windows.Forms.Panel();
             this.panel1 = new System.Windows.Forms.Panel();
             this.panel6 = new System.Windows.Forms.Panel();
             this.panel5 = new System.Windows.Forms.Panel();
             this.panel2 = new System.Windows.Forms.Panel();
             this.panel4 = new System.Windows.Forms.Panel();
             this.panel3 = new System.Windows.Forms.Panel();
+            this.panel7 = new System.Windows.Forms.Panel();
+            this.button1 = new System.Windows.Forms.Button();
+            this.panel9 = new System.Windows.Forms.Panel();
             this.bSettings = new System.Windows.Forms.Button();
             this.bPlay = new System.Windows.Forms.Button();
+            this.cbChannelsMain = new System.Windows.Forms.ComboBox();
             this.cbOutput2 = new System.Windows.Forms.ComboBox();
             this.labelSecondOutput = new System.Windows.Forms.Label();
             this.panel8 = new System.Windows.Forms.Panel();
+            this.cbChannelsSecond = new System.Windows.Forms.ComboBox();
             this.grCompress.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.tbCompReleaseSpeed)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.tbCompLimitF)).BeginInit();
@@ -111,10 +115,10 @@
             ((System.ComponentModel.ISupportInitialize)(this.tbCompAttackSpeed)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.tbCompNTreshold)).BeginInit();
             this.pWindowTitle.SuspendLayout();
-            this.contextMenuStrip1.SuspendLayout();
             this.panelCompressor.SuspendLayout();
-            this.panel9.SuspendLayout();
             this.pMix.SuspendLayout();
+            this.panel7.SuspendLayout();
+            this.panel9.SuspendLayout();
             this.SuspendLayout();
             // 
             // cbInput1
@@ -130,40 +134,28 @@
             this.cbInput1.TabIndex = 0;
             this.cbInput1.SelectedIndexChanged += new System.EventHandler(this.cbInput1_SelectedIndexChanged);
             // 
-            // cbOutput1
+            // cbOutputMain
             // 
-            this.cbOutput1.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.cbOutput1.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.cbOutput1.FlatStyle = System.Windows.Forms.FlatStyle.System;
-            this.cbOutput1.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            this.cbOutput1.FormattingEnabled = true;
-            this.cbOutput1.ImeMode = System.Windows.Forms.ImeMode.NoControl;
-            this.cbOutput1.Location = new System.Drawing.Point(10, 391);
-            this.cbOutput1.Name = "cbOutput1";
-            this.cbOutput1.Size = new System.Drawing.Size(221, 23);
-            this.cbOutput1.TabIndex = 1;
-            this.cbOutput1.SelectedIndexChanged += new System.EventHandler(this.cbOutput_SelectedIndexChanged);
+            this.cbOutputMain.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.cbOutputMain.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.cbOutputMain.FlatStyle = System.Windows.Forms.FlatStyle.System;
+            this.cbOutputMain.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.cbOutputMain.FormattingEnabled = true;
+            this.cbOutputMain.ImeMode = System.Windows.Forms.ImeMode.NoControl;
+            this.cbOutputMain.Location = new System.Drawing.Point(10, 391);
+            this.cbOutputMain.Name = "cbOutputMain";
+            this.cbOutputMain.Size = new System.Drawing.Size(221, 23);
+            this.cbOutputMain.TabIndex = 1;
+            this.cbOutputMain.SelectedIndexChanged += new System.EventHandler(this.cbOutputMain_SelectedIndexChanged);
             // 
-            // pMixIn
+            // pInputFlat
             // 
-            this.pMixIn.BackColor = System.Drawing.Color.LightGreen;
-            this.pMixIn.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.pMixIn.CausesValidation = false;
-            this.pMixIn.Location = new System.Drawing.Point(41, 12);
-            this.pMixIn.Name = "pMixIn";
-            this.pMixIn.Size = new System.Drawing.Size(250, 7);
-            this.pMixIn.TabIndex = 4;
-            // 
-            // label_IN_FAST
-            // 
-            this.label_IN_FAST.AutoSize = true;
-            this.label_IN_FAST.CausesValidation = false;
-            this.label_IN_FAST.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            this.label_IN_FAST.Location = new System.Drawing.Point(18, 6);
-            this.label_IN_FAST.Name = "label_IN_FAST";
-            this.label_IN_FAST.Size = new System.Drawing.Size(19, 15);
-            this.label_IN_FAST.TabIndex = 7;
-            this.label_IN_FAST.Text = "IN";
+            this.pInputFlat.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(150)))), ((int)(((byte)(240)))), ((int)(((byte)(140)))));
+            this.pInputFlat.CausesValidation = false;
+            this.pInputFlat.Location = new System.Drawing.Point(4, 10);
+            this.pInputFlat.Name = "pInputFlat";
+            this.pInputFlat.Size = new System.Drawing.Size(250, 6);
+            this.pInputFlat.TabIndex = 4;
             // 
             // grCompress
             // 
@@ -197,7 +189,7 @@
             this.grCompress.Controls.Add(this.tbCompAttackSpeed);
             this.grCompress.Controls.Add(this.tbCompNTreshold);
             this.grCompress.Controls.Add(this.labelNTreshold);
-            this.grCompress.Location = new System.Drawing.Point(9, 66);
+            this.grCompress.Location = new System.Drawing.Point(9, 71);
             this.grCompress.Name = "grCompress";
             this.grCompress.Size = new System.Drawing.Size(383, 312);
             this.grCompress.TabIndex = 9;
@@ -238,18 +230,18 @@
             this.labelReleaseVal.Name = "labelReleaseVal";
             this.labelReleaseVal.Size = new System.Drawing.Size(32, 13);
             this.labelReleaseVal.TabIndex = 20;
-            this.labelReleaseVal.Text = "75ms";
+            this.labelReleaseVal.Text = "80ms";
             // 
             // tbCompReleaseSpeed
             // 
             this.tbCompReleaseSpeed.AutoSize = false;
             this.tbCompReleaseSpeed.Location = new System.Drawing.Point(55, 84);
-            this.tbCompReleaseSpeed.Maximum = 120;
+            this.tbCompReleaseSpeed.Maximum = 80;
             this.tbCompReleaseSpeed.Name = "tbCompReleaseSpeed";
             this.tbCompReleaseSpeed.Size = new System.Drawing.Size(282, 23);
             this.tbCompReleaseSpeed.TabIndex = 19;
             this.tbCompReleaseSpeed.TickStyle = System.Windows.Forms.TickStyle.None;
-            this.tbCompReleaseSpeed.Value = 6;
+            this.tbCompReleaseSpeed.Value = 4;
             this.tbCompReleaseSpeed.ValueChanged += new System.EventHandler(this.tbCompReleaseSpeed_ValueChanged);
             this.tbCompReleaseSpeed.MouseDown += new System.Windows.Forms.MouseEventHandler(this.tbCompReleaseSpeed_MouseDown);
             // 
@@ -266,14 +258,14 @@
             // 
             this.tbCompLimitF.AutoSize = false;
             this.tbCompLimitF.Location = new System.Drawing.Point(55, 288);
-            this.tbCompLimitF.Maximum = 0;
+            this.tbCompLimitF.Maximum = -1;
             this.tbCompLimitF.Minimum = -48;
             this.tbCompLimitF.Name = "tbCompLimitF";
             this.tbCompLimitF.Size = new System.Drawing.Size(282, 23);
             this.tbCompLimitF.TabIndex = 22;
             this.tbCompLimitF.TickStyle = System.Windows.Forms.TickStyle.None;
             this.tbCompLimitF.Value = -8;
-            this.tbCompLimitF.ValueChanged += new System.EventHandler(this.tbLimitF_ValueChanged);
+            this.tbCompLimitF.ValueChanged += new System.EventHandler(this.tbCompLimitF_ValueChanged);
             this.tbCompLimitF.MouseDown += new System.Windows.Forms.MouseEventHandler(this.tbCompLimitF_MouseDown);
             // 
             // labelLimiterVal
@@ -298,8 +290,8 @@
             // 
             this.tbCompLimitS.AutoSize = false;
             this.tbCompLimitS.Location = new System.Drawing.Point(55, 260);
-            this.tbCompLimitS.Maximum = 0;
-            this.tbCompLimitS.Minimum = -60;
+            this.tbCompLimitS.Maximum = -1;
+            this.tbCompLimitS.Minimum = -48;
             this.tbCompLimitS.Name = "tbCompLimitS";
             this.tbCompLimitS.Size = new System.Drawing.Size(282, 23);
             this.tbCompLimitS.TabIndex = 15;
@@ -330,13 +322,13 @@
             // 
             this.tbCompNRatio.AutoSize = false;
             this.tbCompNRatio.Location = new System.Drawing.Point(55, 201);
-            this.tbCompNRatio.Maximum = 25;
+            this.tbCompNRatio.Maximum = 42;
             this.tbCompNRatio.Minimum = 3;
             this.tbCompNRatio.Name = "tbCompNRatio";
             this.tbCompNRatio.Size = new System.Drawing.Size(282, 23);
             this.tbCompNRatio.TabIndex = 12;
             this.tbCompNRatio.TickStyle = System.Windows.Forms.TickStyle.None;
-            this.tbCompNRatio.Value = 10;
+            this.tbCompNRatio.Value = 21;
             this.tbCompNRatio.ValueChanged += new System.EventHandler(this.tbCompNRatio_ValueChanged);
             this.tbCompNRatio.MouseDown += new System.Windows.Forms.MouseEventHandler(this.tbCompNRatio_MouseDown);
             // 
@@ -345,9 +337,9 @@
             this.labelPostAmpVal.AutoSize = true;
             this.labelPostAmpVal.Location = new System.Drawing.Point(344, 233);
             this.labelPostAmpVal.Name = "labelPostAmpVal";
-            this.labelPostAmpVal.Size = new System.Drawing.Size(26, 13);
+            this.labelPostAmpVal.Size = new System.Drawing.Size(35, 13);
             this.labelPostAmpVal.TabIndex = 11;
-            this.labelPostAmpVal.Text = "0dB";
+            this.labelPostAmpVal.Text = "0.0dB";
             // 
             // labelPostAmp
             // 
@@ -362,8 +354,8 @@
             // 
             this.tbCompPostAmp.AutoSize = false;
             this.tbCompPostAmp.Location = new System.Drawing.Point(55, 230);
-            this.tbCompPostAmp.Maximum = 30;
-            this.tbCompPostAmp.Minimum = -25;
+            this.tbCompPostAmp.Maximum = 80;
+            this.tbCompPostAmp.Minimum = -80;
             this.tbCompPostAmp.Name = "tbCompPostAmp";
             this.tbCompPostAmp.Size = new System.Drawing.Size(282, 23);
             this.tbCompPostAmp.TabIndex = 9;
@@ -378,7 +370,7 @@
             this.labelRatioVal.Name = "labelRatioVal";
             this.labelRatioVal.Size = new System.Drawing.Size(31, 13);
             this.labelRatioVal.TabIndex = 8;
-            this.labelRatioVal.Text = "1:2,0";
+            this.labelRatioVal.Text = "1:1.5";
             // 
             // labelRatio
             // 
@@ -393,13 +385,13 @@
             // 
             this.tbCompRatio.AutoSize = false;
             this.tbCompRatio.Location = new System.Drawing.Point(55, 142);
-            this.tbCompRatio.Maximum = 100;
+            this.tbCompRatio.Maximum = 48;
             this.tbCompRatio.Minimum = 5;
             this.tbCompRatio.Name = "tbCompRatio";
             this.tbCompRatio.Size = new System.Drawing.Size(282, 23);
             this.tbCompRatio.TabIndex = 6;
             this.tbCompRatio.TickStyle = System.Windows.Forms.TickStyle.None;
-            this.tbCompRatio.Value = 20;
+            this.tbCompRatio.Value = 18;
             this.tbCompRatio.ValueChanged += new System.EventHandler(this.tbCompRatio_ValueChanged);
             this.tbCompRatio.MouseDown += new System.Windows.Forms.MouseEventHandler(this.tbCompRatio_MouseDown);
             // 
@@ -417,9 +409,9 @@
             this.labelPreampVal.AutoSize = true;
             this.labelPreampVal.Location = new System.Drawing.Point(345, 29);
             this.labelPreampVal.Name = "labelPreampVal";
-            this.labelPreampVal.Size = new System.Drawing.Size(26, 13);
+            this.labelPreampVal.Size = new System.Drawing.Size(35, 13);
             this.labelPreampVal.TabIndex = 2;
-            this.labelPreampVal.Text = "0dB";
+            this.labelPreampVal.Text = "0.0dB";
             // 
             // labelTreshold
             // 
@@ -437,7 +429,7 @@
             this.labelNTresholdVal.Name = "labelNTresholdVal";
             this.labelNTresholdVal.Size = new System.Drawing.Size(35, 13);
             this.labelNTresholdVal.TabIndex = 5;
-            this.labelNTresholdVal.Text = "-36dB";
+            this.labelNTresholdVal.Text = "-40dB";
             // 
             // labelPreamp
             // 
@@ -469,14 +461,14 @@
             this.labelAttackVal.Name = "labelAttackVal";
             this.labelAttackVal.Size = new System.Drawing.Size(32, 13);
             this.labelAttackVal.TabIndex = 2;
-            this.labelAttackVal.Text = "45ms";
+            this.labelAttackVal.Text = "60ms";
             // 
             // tbCompPreamp
             // 
             this.tbCompPreamp.AutoSize = false;
             this.tbCompPreamp.Location = new System.Drawing.Point(55, 26);
-            this.tbCompPreamp.Maximum = 40;
-            this.tbCompPreamp.Minimum = -30;
+            this.tbCompPreamp.Maximum = 70;
+            this.tbCompPreamp.Minimum = -70;
             this.tbCompPreamp.Name = "tbCompPreamp";
             this.tbCompPreamp.Size = new System.Drawing.Size(282, 23);
             this.tbCompPreamp.TabIndex = 0;
@@ -488,12 +480,12 @@
             // 
             this.tbCompAttackSpeed.AutoSize = false;
             this.tbCompAttackSpeed.Location = new System.Drawing.Point(55, 54);
-            this.tbCompAttackSpeed.Maximum = 40;
+            this.tbCompAttackSpeed.Maximum = 45;
             this.tbCompAttackSpeed.Name = "tbCompAttackSpeed";
             this.tbCompAttackSpeed.Size = new System.Drawing.Size(282, 23);
             this.tbCompAttackSpeed.TabIndex = 0;
             this.tbCompAttackSpeed.TickStyle = System.Windows.Forms.TickStyle.None;
-            this.tbCompAttackSpeed.Value = 4;
+            this.tbCompAttackSpeed.Value = 3;
             this.tbCompAttackSpeed.ValueChanged += new System.EventHandler(this.tbCompAttackSpeed_ValueChanged);
             this.tbCompAttackSpeed.MouseDown += new System.Windows.Forms.MouseEventHandler(this.tbCompAttackSpeed_MouseDown);
             // 
@@ -507,7 +499,7 @@
             this.tbCompNTreshold.Size = new System.Drawing.Size(282, 23);
             this.tbCompNTreshold.TabIndex = 3;
             this.tbCompNTreshold.TickStyle = System.Windows.Forms.TickStyle.None;
-            this.tbCompNTreshold.Value = -36;
+            this.tbCompNTreshold.Value = -40;
             this.tbCompNTreshold.ValueChanged += new System.EventHandler(this.tbCompNTreshold_ValueChanged);
             this.tbCompNTreshold.MouseDown += new System.Windows.Forms.MouseEventHandler(this.tbCompNTreshold_MouseDown);
             // 
@@ -520,41 +512,34 @@
             this.labelNTreshold.TabIndex = 4;
             this.labelNTreshold.Text = "NTreshold";
             // 
-            // cbBypass
+            // cbCompActive
             // 
-            this.cbBypass.AutoSize = true;
-            this.cbBypass.Location = new System.Drawing.Point(9, 8);
-            this.cbBypass.Name = "cbBypass";
-            this.cbBypass.Size = new System.Drawing.Size(60, 17);
-            this.cbBypass.TabIndex = 0;
-            this.cbBypass.Text = "Bypass";
-            this.cbBypass.UseVisualStyleBackColor = true;
-            this.cbBypass.CheckedChanged += new System.EventHandler(this.cbCompressBypass_CheckedChanged);
-            // 
-            // labelMIX
-            // 
-            this.labelMIX.AutoSize = true;
-            this.labelMIX.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            this.labelMIX.Location = new System.Drawing.Point(9, 30);
-            this.labelMIX.Name = "labelMIX";
-            this.labelMIX.Size = new System.Drawing.Size(29, 15);
-            this.labelMIX.TabIndex = 13;
-            this.labelMIX.Text = "MIX";
+            this.cbCompActive.AutoSize = true;
+            this.cbCompActive.Checked = true;
+            this.cbCompActive.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.cbCompActive.Location = new System.Drawing.Point(9, 8);
+            this.cbCompActive.Name = "cbCompActive";
+            this.cbCompActive.Size = new System.Drawing.Size(56, 17);
+            this.cbCompActive.TabIndex = 0;
+            this.cbCompActive.Text = "Active";
+            this.cbCompActive.UseVisualStyleBackColor = true;
+            this.cbCompActive.CheckedChanged += new System.EventHandler(this.cbCompActive_CheckedChanged);
             // 
             // panelDelta
             // 
-            this.panelDelta.BackColor = System.Drawing.Color.Orange;
-            this.panelDelta.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.panelDelta.Location = new System.Drawing.Point(191, 22);
+            this.panelDelta.BackColor = System.Drawing.Color.Gold;
+            this.panelDelta.CausesValidation = false;
+            this.panelDelta.Location = new System.Drawing.Point(154, 25);
             this.panelDelta.Name = "panelDelta";
-            this.panelDelta.Size = new System.Drawing.Size(1, 8);
+            this.panelDelta.Size = new System.Drawing.Size(250, 6);
             this.panelDelta.TabIndex = 12;
             // 
             // pWindowTitle
             // 
             this.pWindowTitle.BackColor = System.Drawing.SystemColors.ScrollBar;
-            this.pWindowTitle.ContextMenuStrip = this.contextMenuStrip1;
-            this.pWindowTitle.Controls.Add(this.bHideTray);
+            this.pWindowTitle.Controls.Add(this.button2);
+            this.pWindowTitle.Controls.Add(this.bTopMost);
+            this.pWindowTitle.Controls.Add(this.bTray);
             this.pWindowTitle.Controls.Add(this.bMinimise);
             this.pWindowTitle.Controls.Add(this.bClose);
             this.pWindowTitle.Controls.Add(this.labelWindowTitle);
@@ -566,41 +551,47 @@
             this.pWindowTitle.MouseMove += new System.Windows.Forms.MouseEventHandler(this.title_MouseMove);
             this.pWindowTitle.MouseUp += new System.Windows.Forms.MouseEventHandler(this.title_MouseUp);
             // 
-            // contextMenuStrip1
+            // button2
             // 
-            this.contextMenuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.aboutToolStripMenuItem,
-            this.alwaysOnTopToolStripMenuItem});
-            this.contextMenuStrip1.Name = "contextMenuStrip1";
-            this.contextMenuStrip1.Size = new System.Drawing.Size(150, 48);
+            this.button2.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.button2.BackColor = System.Drawing.SystemColors.ButtonShadow;
+            this.button2.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.button2.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.button2.Location = new System.Drawing.Point(237, -5);
+            this.button2.Name = "button2";
+            this.button2.Size = new System.Drawing.Size(28, 32);
+            this.button2.TabIndex = 5;
+            this.button2.Text = "?";
+            this.button2.UseVisualStyleBackColor = false;
+            this.button2.Click += new System.EventHandler(this.button2_Click);
             // 
-            // aboutToolStripMenuItem
+            // bTopMost
             // 
-            this.aboutToolStripMenuItem.Name = "aboutToolStripMenuItem";
-            this.aboutToolStripMenuItem.Size = new System.Drawing.Size(149, 22);
-            this.aboutToolStripMenuItem.Text = "About";
-            this.aboutToolStripMenuItem.Click += new System.EventHandler(this.aboutToolStripMenuItem_Click);
+            this.bTopMost.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.bTopMost.BackColor = System.Drawing.SystemColors.ButtonShadow;
+            this.bTopMost.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.bTopMost.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.bTopMost.Location = new System.Drawing.Point(264, -5);
+            this.bTopMost.Name = "bTopMost";
+            this.bTopMost.Size = new System.Drawing.Size(28, 32);
+            this.bTopMost.TabIndex = 4;
+            this.bTopMost.Text = "↑";
+            this.bTopMost.UseVisualStyleBackColor = false;
+            this.bTopMost.Click += new System.EventHandler(this.bTopMost_Click);
             // 
-            // alwaysOnTopToolStripMenuItem
+            // bTray
             // 
-            this.alwaysOnTopToolStripMenuItem.Name = "alwaysOnTopToolStripMenuItem";
-            this.alwaysOnTopToolStripMenuItem.Size = new System.Drawing.Size(149, 22);
-            this.alwaysOnTopToolStripMenuItem.Text = "Always on top";
-            this.alwaysOnTopToolStripMenuItem.Click += new System.EventHandler(this.alwaysOnTopToolStripMenuItem_Click);
-            // 
-            // bHideTray
-            // 
-            this.bHideTray.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.bHideTray.BackColor = System.Drawing.SystemColors.ButtonShadow;
-            this.bHideTray.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.bHideTray.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            this.bHideTray.Location = new System.Drawing.Point(291, -5);
-            this.bHideTray.Name = "bHideTray";
-            this.bHideTray.Size = new System.Drawing.Size(28, 32);
-            this.bHideTray.TabIndex = 3;
-            this.bHideTray.Text = ".";
-            this.bHideTray.UseVisualStyleBackColor = false;
-            this.bHideTray.Click += new System.EventHandler(this.button3_Click);
+            this.bTray.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.bTray.BackColor = System.Drawing.SystemColors.ButtonShadow;
+            this.bTray.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.bTray.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.bTray.Location = new System.Drawing.Point(291, -5);
+            this.bTray.Name = "bTray";
+            this.bTray.Size = new System.Drawing.Size(28, 32);
+            this.bTray.TabIndex = 3;
+            this.bTray.Text = ".";
+            this.bTray.UseVisualStyleBackColor = false;
+            this.bTray.Click += new System.EventHandler(this.bTray_Click);
             // 
             // bMinimise
             // 
@@ -699,87 +690,105 @@
             this.labelSecondInput.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
             this.labelSecondInput.Location = new System.Drawing.Point(241, 63);
             this.labelSecondInput.Name = "labelSecondInput";
-            this.labelSecondInput.Size = new System.Drawing.Size(120, 15);
+            this.labelSecondInput.Size = new System.Drawing.Size(81, 15);
             this.labelSecondInput.TabIndex = 27;
-            this.labelSecondInput.Text = "SECONDARY INPUT";
+            this.labelSecondInput.Text = "SECONDARY";
             // 
             // panelCompressor
             // 
-            this.panelCompressor.Controls.Add(this.panel9);
+            this.panelCompressor.Controls.Add(this.panel10);
             this.panelCompressor.Controls.Add(this.pMix);
+            this.panelCompressor.Controls.Add(this.panel7);
+            this.panelCompressor.Controls.Add(this.panel9);
             this.panelCompressor.Controls.Add(this.bSettings);
             this.panelCompressor.Controls.Add(this.bPlay);
-            this.panelCompressor.Controls.Add(this.cbOutput1);
+            this.panelCompressor.Controls.Add(this.cbOutputMain);
             this.panelCompressor.Controls.Add(this.grCompress);
             this.panelCompressor.Location = new System.Drawing.Point(-1, 86);
             this.panelCompressor.Name = "panelCompressor";
-            this.panelCompressor.Size = new System.Drawing.Size(401, 422);
+            this.panelCompressor.Size = new System.Drawing.Size(402, 422);
             this.panelCompressor.TabIndex = 29;
             // 
-            // panel9
+            // panel10
             // 
-            this.panel9.Controls.Add(this.cbBypass);
-            this.panel9.Controls.Add(this.bLoadPreset);
-            this.panel9.Controls.Add(this.bSavePreset);
-            this.panel9.Location = new System.Drawing.Point(109, 58);
-            this.panel9.Name = "panel9";
-            this.panel9.Size = new System.Drawing.Size(215, 31);
-            this.panel9.TabIndex = 32;
+            this.panel10.BackColor = System.Drawing.Color.Brown;
+            this.panel10.CausesValidation = false;
+            this.panel10.Location = new System.Drawing.Point(0, 3);
+            this.panel10.Name = "panel10";
+            this.panel10.Size = new System.Drawing.Size(28, 56);
+            this.panel10.TabIndex = 34;
             // 
             // pMix
             // 
-            this.pMix.Controls.Add(this.pMixIn);
-            this.pMix.Controls.Add(this.pMixOut);
-            this.pMix.Controls.Add(this.pMainOut);
-            this.pMix.Controls.Add(this.label_IN_FAST);
-            this.pMix.Controls.Add(this.pMainIn);
+            this.pMix.BackColor = System.Drawing.Color.Brown;
+            this.pMix.CausesValidation = false;
+            this.pMix.Controls.Add(this.pOutRes);
+            this.pMix.Controls.Add(this.pInputAmp);
+            this.pMix.Controls.Add(this.pInputFlat);
+            this.pMix.Controls.Add(this.pOutAmp);
+            this.pMix.Controls.Add(this.pOutMain);
+            this.pMix.Controls.Add(this.pInputRaw);
             this.pMix.Controls.Add(this.panel1);
             this.pMix.Controls.Add(this.panel6);
             this.pMix.Controls.Add(this.panel5);
             this.pMix.Controls.Add(this.panel2);
             this.pMix.Controls.Add(this.panelDelta);
             this.pMix.Controls.Add(this.panel4);
-            this.pMix.Controls.Add(this.labelMIX);
             this.pMix.Controls.Add(this.panel3);
-            this.pMix.Location = new System.Drawing.Point(8, 4);
+            this.pMix.Location = new System.Drawing.Point(28, 3);
             this.pMix.Name = "pMix";
-            this.pMix.Size = new System.Drawing.Size(354, 56);
+            this.pMix.Size = new System.Drawing.Size(307, 56);
             this.pMix.TabIndex = 32;
             // 
-            // pMixOut
+            // pOutRes
             // 
-            this.pMixOut.BackColor = System.Drawing.Color.LightGreen;
-            this.pMixOut.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.pMixOut.CausesValidation = false;
-            this.pMixOut.Location = new System.Drawing.Point(41, 32);
-            this.pMixOut.Name = "pMixOut";
-            this.pMixOut.Size = new System.Drawing.Size(190, 7);
-            this.pMixOut.TabIndex = 7;
+            this.pOutRes.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(150)))), ((int)(((byte)(240)))), ((int)(((byte)(100)))));
+            this.pOutRes.CausesValidation = false;
+            this.pOutRes.Location = new System.Drawing.Point(4, 33);
+            this.pOutRes.Name = "pOutRes";
+            this.pOutRes.Size = new System.Drawing.Size(250, 6);
+            this.pOutRes.TabIndex = 8;
             // 
-            // pMainOut
+            // pInputAmp
             // 
-            this.pMainOut.BackColor = System.Drawing.Color.PaleGreen;
-            this.pMainOut.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.pMainOut.CausesValidation = false;
-            this.pMainOut.Location = new System.Drawing.Point(41, 41);
-            this.pMainOut.Name = "pMainOut";
-            this.pMainOut.Size = new System.Drawing.Size(225, 7);
-            this.pMainOut.TabIndex = 6;
+            this.pInputAmp.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(150)))), ((int)(((byte)(240)))), ((int)(((byte)(100)))));
+            this.pInputAmp.CausesValidation = false;
+            this.pInputAmp.Location = new System.Drawing.Point(4, 17);
+            this.pInputAmp.Name = "pInputAmp";
+            this.pInputAmp.Size = new System.Drawing.Size(250, 6);
+            this.pInputAmp.TabIndex = 5;
             // 
-            // pMainIn
+            // pOutAmp
             // 
-            this.pMainIn.BackColor = System.Drawing.Color.PaleGreen;
-            this.pMainIn.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.pMainIn.CausesValidation = false;
-            this.pMainIn.Location = new System.Drawing.Point(41, 3);
-            this.pMainIn.Name = "pMainIn";
-            this.pMainIn.Size = new System.Drawing.Size(198, 7);
-            this.pMainIn.TabIndex = 5;
+            this.pOutAmp.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(150)))), ((int)(((byte)(240)))), ((int)(((byte)(140)))));
+            this.pOutAmp.CausesValidation = false;
+            this.pOutAmp.Location = new System.Drawing.Point(4, 40);
+            this.pOutAmp.Name = "pOutAmp";
+            this.pOutAmp.Size = new System.Drawing.Size(250, 6);
+            this.pOutAmp.TabIndex = 7;
+            // 
+            // pOutMain
+            // 
+            this.pOutMain.BackColor = System.Drawing.Color.LightGreen;
+            this.pOutMain.CausesValidation = false;
+            this.pOutMain.Location = new System.Drawing.Point(4, 49);
+            this.pOutMain.Name = "pOutMain";
+            this.pOutMain.Size = new System.Drawing.Size(250, 5);
+            this.pOutMain.TabIndex = 6;
+            // 
+            // pInputRaw
+            // 
+            this.pInputRaw.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(190)))), ((int)(((byte)(245)))), ((int)(((byte)(180)))));
+            this.pInputRaw.CausesValidation = false;
+            this.pInputRaw.Location = new System.Drawing.Point(4, 2);
+            this.pInputRaw.Name = "pInputRaw";
+            this.pInputRaw.Size = new System.Drawing.Size(250, 5);
+            this.pInputRaw.TabIndex = 5;
             // 
             // panel1
             // 
             this.panel1.BackColor = System.Drawing.SystemColors.ScrollBar;
-            this.panel1.Location = new System.Drawing.Point(91, 6);
+            this.panel1.Location = new System.Drawing.Point(54, 7);
             this.panel1.Name = "panel1";
             this.panel1.Size = new System.Drawing.Size(1, 10);
             this.panel1.TabIndex = 17;
@@ -787,7 +796,7 @@
             // panel6
             // 
             this.panel6.BackColor = System.Drawing.SystemColors.ScrollBar;
-            this.panel6.Location = new System.Drawing.Point(141, 6);
+            this.panel6.Location = new System.Drawing.Point(104, 7);
             this.panel6.Name = "panel6";
             this.panel6.Size = new System.Drawing.Size(1, 10);
             this.panel6.TabIndex = 16;
@@ -795,7 +804,7 @@
             // panel5
             // 
             this.panel5.BackColor = System.Drawing.SystemColors.ScrollBar;
-            this.panel5.Location = new System.Drawing.Point(191, 6);
+            this.panel5.Location = new System.Drawing.Point(154, 7);
             this.panel5.Name = "panel5";
             this.panel5.Size = new System.Drawing.Size(1, 10);
             this.panel5.TabIndex = 16;
@@ -803,7 +812,7 @@
             // panel2
             // 
             this.panel2.BackColor = System.Drawing.SystemColors.ScrollBar;
-            this.panel2.Location = new System.Drawing.Point(341, 6);
+            this.panel2.Location = new System.Drawing.Point(304, 7);
             this.panel2.Name = "panel2";
             this.panel2.Size = new System.Drawing.Size(1, 10);
             this.panel2.TabIndex = 15;
@@ -811,7 +820,7 @@
             // panel4
             // 
             this.panel4.BackColor = System.Drawing.SystemColors.ScrollBar;
-            this.panel4.Location = new System.Drawing.Point(241, 6);
+            this.panel4.Location = new System.Drawing.Point(204, 7);
             this.panel4.Name = "panel4";
             this.panel4.Size = new System.Drawing.Size(1, 10);
             this.panel4.TabIndex = 15;
@@ -819,10 +828,42 @@
             // panel3
             // 
             this.panel3.BackColor = System.Drawing.SystemColors.ScrollBar;
-            this.panel3.Location = new System.Drawing.Point(291, 6);
+            this.panel3.Location = new System.Drawing.Point(254, 7);
             this.panel3.Name = "panel3";
             this.panel3.Size = new System.Drawing.Size(1, 10);
             this.panel3.TabIndex = 14;
+            // 
+            // panel7
+            // 
+            this.panel7.BackColor = System.Drawing.Color.Brown;
+            this.panel7.CausesValidation = false;
+            this.panel7.Controls.Add(this.button1);
+            this.panel7.Location = new System.Drawing.Point(334, 3);
+            this.panel7.Name = "panel7";
+            this.panel7.Size = new System.Drawing.Size(68, 56);
+            this.panel7.TabIndex = 33;
+            // 
+            // button1
+            // 
+            this.button1.BackColor = System.Drawing.Color.IndianRed;
+            this.button1.ForeColor = System.Drawing.Color.Olive;
+            this.button1.Location = new System.Drawing.Point(15, 18);
+            this.button1.Name = "button1";
+            this.button1.Size = new System.Drawing.Size(30, 24);
+            this.button1.TabIndex = 0;
+            this.button1.Text = "on";
+            this.button1.UseVisualStyleBackColor = true;
+            this.button1.Click += new System.EventHandler(this.button1_Click);
+            // 
+            // panel9
+            // 
+            this.panel9.Controls.Add(this.cbCompActive);
+            this.panel9.Controls.Add(this.bLoadPreset);
+            this.panel9.Controls.Add(this.bSavePreset);
+            this.panel9.Location = new System.Drawing.Point(109, 62);
+            this.panel9.Name = "panel9";
+            this.panel9.Size = new System.Drawing.Size(216, 31);
+            this.panel9.TabIndex = 32;
             // 
             // bSettings
             // 
@@ -845,6 +886,16 @@
             this.bPlay.Text = "Play";
             this.bPlay.UseVisualStyleBackColor = true;
             this.bPlay.Click += new System.EventHandler(this.bPlayStop_Click);
+            // 
+            // cbChannelsMain
+            // 
+            this.cbChannelsMain.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.cbChannelsMain.FormattingEnabled = true;
+            this.cbChannelsMain.Location = new System.Drawing.Point(328, 29);
+            this.cbChannelsMain.Name = "cbChannelsMain";
+            this.cbChannelsMain.Size = new System.Drawing.Size(60, 21);
+            this.cbChannelsMain.TabIndex = 23;
+            this.cbChannelsMain.SelectedIndexChanged += new System.EventHandler(this.cbChannelsMain_IndexChanged);
             // 
             // cbOutput2
             // 
@@ -883,10 +934,23 @@
             this.panel8.TabIndex = 6;
             this.panel8.Visible = false;
             // 
+            // cbChannelsSecond
+            // 
+            this.cbChannelsSecond.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.cbChannelsSecond.FormattingEnabled = true;
+            this.cbChannelsSecond.Location = new System.Drawing.Point(328, 61);
+            this.cbChannelsSecond.Name = "cbChannelsSecond";
+            this.cbChannelsSecond.Size = new System.Drawing.Size(60, 21);
+            this.cbChannelsSecond.TabIndex = 32;
+            this.cbChannelsSecond.Visible = false;
+            this.cbChannelsSecond.SelectedIndexChanged += new System.EventHandler(this.cbChannelsSecond_IndexChanged);
+            // 
             // FormMain
             // 
             this.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(240)))), ((int)(((byte)(240)))), ((int)(((byte)(240)))));
             this.ClientSize = new System.Drawing.Size(401, 542);
+            this.Controls.Add(this.cbChannelsSecond);
+            this.Controls.Add(this.cbChannelsMain);
             this.Controls.Add(this.panel8);
             this.Controls.Add(this.panelCompressor);
             this.Controls.Add(this.cbOutput2);
@@ -915,12 +979,11 @@
             ((System.ComponentModel.ISupportInitialize)(this.tbCompNTreshold)).EndInit();
             this.pWindowTitle.ResumeLayout(false);
             this.pWindowTitle.PerformLayout();
-            this.contextMenuStrip1.ResumeLayout(false);
             this.panelCompressor.ResumeLayout(false);
+            this.pMix.ResumeLayout(false);
+            this.panel7.ResumeLayout(false);
             this.panel9.ResumeLayout(false);
             this.panel9.PerformLayout();
-            this.pMix.ResumeLayout(false);
-            this.pMix.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -929,11 +992,10 @@
         #endregion
 
         private System.Windows.Forms.ComboBox cbInput1;
-        private System.Windows.Forms.ComboBox cbOutput1;
-        private System.Windows.Forms.Panel pMixIn;
-        private System.Windows.Forms.Label label_IN_FAST;
+        private System.Windows.Forms.ComboBox cbOutputMain;
+        private System.Windows.Forms.Panel pInputFlat;
         private System.Windows.Forms.GroupBox grCompress;
-        private System.Windows.Forms.CheckBox cbBypass;
+        private System.Windows.Forms.CheckBox cbCompActive;
         private System.Windows.Forms.TrackBar tbCompPreamp;
         private System.Windows.Forms.Label labelPostAmpVal;
         private System.Windows.Forms.Label labelPostAmp;
@@ -946,7 +1008,6 @@
         private System.Windows.Forms.TrackBar tbCompTreshold;
         private System.Windows.Forms.Label labelPreampVal;
         private System.Windows.Forms.Label labelPreamp;
-        private System.Windows.Forms.Label labelMIX;
         private System.Windows.Forms.Panel panelDelta;
         private System.Windows.Forms.Label labelNRatioVal;
         private System.Windows.Forms.Label labelNRatio;
@@ -958,8 +1019,6 @@
         private System.Windows.Forms.Label labelWindowTitle;
         private System.Windows.Forms.Button bClose;
         private System.Windows.Forms.Button bMinimise;
-        private System.Windows.Forms.ContextMenuStrip contextMenuStrip1;
-        private System.Windows.Forms.ToolStripMenuItem aboutToolStripMenuItem;
         private System.Windows.Forms.Label labelAttack;
         private System.Windows.Forms.Label labelAttackVal;
         private System.Windows.Forms.TrackBar tbCompAttackSpeed;
@@ -969,7 +1028,7 @@
         private System.Windows.Forms.Label labelRelease;
         private System.Windows.Forms.Label labelReleaseVal;
         private System.Windows.Forms.TrackBar tbCompReleaseSpeed;
-        private System.Windows.Forms.Button bHideTray;
+        private System.Windows.Forms.Button bTray;
         private System.Windows.Forms.NotifyIcon notifyIcon1;
         private System.Windows.Forms.Button bSavePreset;
         private System.Windows.Forms.Button bLoadPreset;
@@ -981,22 +1040,30 @@
 		private System.Windows.Forms.Button bPlay;
 		private System.Windows.Forms.ComboBox cbOutput2;
 		private System.Windows.Forms.Label labelSecondOutput;
-		private System.Windows.Forms.Panel pMainIn;
+		private System.Windows.Forms.Panel pInputRaw;
 		private System.Windows.Forms.Panel panel8;
 		private System.Windows.Forms.Panel pMix;
 		private System.Windows.Forms.Panel panel9;
-		private System.Windows.Forms.Panel pMainOut;
+		private System.Windows.Forms.Panel pOutMain;
 		private System.Windows.Forms.Label labelFLimitVal;
 		private System.Windows.Forms.Label label2;
 		private System.Windows.Forms.TrackBar tbCompLimitF;
-		private System.Windows.Forms.Panel pMixOut;
+		private System.Windows.Forms.Panel pOutAmp;
 		private System.Windows.Forms.Panel panel1;
 		private System.Windows.Forms.Panel panel6;
 		private System.Windows.Forms.Panel panel5;
 		private System.Windows.Forms.Panel panel2;
 		private System.Windows.Forms.Panel panel4;
 		private System.Windows.Forms.Panel panel3;
-		private System.Windows.Forms.ToolStripMenuItem alwaysOnTopToolStripMenuItem;
-	}
+        private System.Windows.Forms.Button bTopMost;
+        private System.Windows.Forms.Panel pOutRes;
+        private System.Windows.Forms.Panel pInputAmp;
+        private System.Windows.Forms.ComboBox cbChannelsMain;
+        private System.Windows.Forms.ComboBox cbChannelsSecond;
+        private System.Windows.Forms.Panel panel7;
+        private System.Windows.Forms.Panel panel10;
+        private System.Windows.Forms.Button button1;
+        private System.Windows.Forms.Button button2;
+    }
 }
 
